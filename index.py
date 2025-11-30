@@ -1,14 +1,14 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext
-from Files.main import Encription
-from Files.server import Server
-from Files.client import Client
+from main import Encription
+from server import Server
+from client import Client
 from threading import Thread
 import socket
 import json
 import os
 import base64
-from Files.hash import Hashing
+from hash import Hashing
 
 class EncryptionApp:
     def __init__(self, root):
@@ -121,14 +121,14 @@ class EncryptionApp:
         self.root.option_add('*Text.background', surface)
         self.root.option_add('*Text.foreground', text_primary)
         self.root.option_add('*Text.insertBackground', text_primary)
-        self.root.option_add('*Text.font', 'Consolas 10')
+        self.root.option_add('*Text.font', ('Consolas', 10))
         
         # Configure Listbox
         self.root.option_add('*Listbox.background', surface)
         self.root.option_add('*Listbox.foreground', text_primary)
         self.root.option_add('*Listbox.selectBackground', primary)
         self.root.option_add('*Listbox.selectForeground', text_primary)
-        self.root.option_add('*Listbox.font', 'Segoe UI 10')
+        self.root.option_add('*Listbox.font', ('Segoe UI', 10))
     
     def create_ui(self):
         # Create notebook for tabs
