@@ -120,7 +120,6 @@ Super Main File - All modules combined
     }
 
     // Add locally generated files
-    zip.file('runner.py', generateRunnerPy());
     zip.file('install.bat', generateInstallScript());
     zip.file('create_shortcut.vbs', generateShortcutScript());
 
@@ -229,7 +228,7 @@ sScriptPath = WScript.ScriptFullName
 sScriptDir = Left(sScriptPath, InStrRev(sScriptPath, "\\"))
 
 oLink.TargetPath = "pythonw.exe"
-oLink.Arguments = Chr(34) & sScriptDir & "runner.py" & Chr(34)
+oLink.Arguments = Chr(34) & sScriptDir & "Super_Main.py" & Chr(34)
 oLink.WorkingDirectory = sScriptDir
 oLink.Description = "Whlates - Secure Encryption Suite v2.6 (2025 Edition)"
 oLink.IconLocation = "C:\\Windows\\System32\\shell32.dll,48"
@@ -320,4 +319,5 @@ style.textContent = `
 }
 `;
 document.head.appendChild(style);
+
 
