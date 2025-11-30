@@ -143,34 +143,6 @@ Super Main File - All modules combined
     URL.revokeObjectURL(url);
 }
 
-function generateRunnerPy() {
-    return `#!/usr/bin/env python3
-"""
-Whlates - Secure Encryption Suite
-Version 2.6 - 2025 Edition
-Runner Script
-"""
-
-import tkinter as tk
-import sys
-import os
-
-# Add current directory to path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-# Import from Super_Main
-from Super_Main import EncryptionApp
-
-def main():
-    root = tk.Tk()
-    app = EncryptionApp(root)
-    root.mainloop()
-
-if __name__ == "__main__":
-    main()
-`;
-}
-
 function generateInstallScript() {
     return `@echo off
 echo ========================================
@@ -348,3 +320,4 @@ style.textContent = `
 }
 `;
 document.head.appendChild(style);
+
