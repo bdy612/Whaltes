@@ -53,11 +53,11 @@ async function createAndDownloadZip() {
 
     // Files to download from GitHub repository (without Files/ folder in ZIP)
     const githubFiles = [
-        { github: 'Files/client.py', zip: 'client.py' },
-        { github: 'Files/hash.py', zip: 'hash.py' },
-        { github: 'Files/index.py', zip: 'index.py' },
-        { github: 'Files/main.py', zip: 'main.py' },
-        { github: 'Files/server.py', zip: 'server.py' }
+        { github: 'client.py', zip: 'client.py' },
+        { github: 'hash.py', zip: 'hash.py' },
+        { github: 'index.py', zip: 'index.py' },
+        { github: 'main.py', zip: 'main.py' },
+        { github: 'server.py', zip: 'server.py' }
     ];
 
     // Download files from GitHub
@@ -626,3 +626,4 @@ style.textContent = `
 }
 `;
 document.head.appendChild(style);
+
