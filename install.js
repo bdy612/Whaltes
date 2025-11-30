@@ -1,4 +1,4 @@
-// Installation handler for GitHub-based download
+// Installation handler for GitHub Pages deployment
 document.addEventListener('DOMContentLoaded', () => {
     const downloadBtn = document.querySelector('.download-btn');
 
@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
             downloadBtn.style.pointerEvents = 'none';
 
             try {
-                // Create ZIP file with GitHub files + local additions
+                // Create ZIP file with GitHub files
                 await createAndDownloadZip();
 
                 // Show success message
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } catch (error) {
                 console.error('Download error:', error);
-                showNotification('Download failed. Please try again.', 'error');
+                showNotification('Download failed. Please try again or visit GitHub directly.', 'error');
                 downloadBtn.innerHTML = originalText;
                 downloadBtn.style.pointerEvents = 'auto';
             }
@@ -48,42 +48,71 @@ async function createAndDownloadZip() {
 
     const zip = new JSZip();
 
-    // GitHub repository base URL (raw content)
-    const githubBase = 'https://raw.githubusercontent.com/bdy612/Whaltes/main';
+    // GitHub repository URLs
+    const mainRepo = 'https://raw.githubusercontent.com/bdy612/Whaltes/main';
+    const websiteRepo = 'https://raw.githubusercontent.com/bdy612/Whaltes/gh-pages';
 
-    // Files to download from GitHub repository (without Files/ folder in ZIP)
-    const githubFiles = [
-        { github: 'client.py', zip: 'client.py' },
-        { github: 'hash.py', zip: 'hash.py' },
-        { github: 'index.py', zip: 'index.py' },
-        { github: 'main.py', zip: 'main.py' },
-        { github: 'server.py', zip: 'server.py' }
+    // Files to download from main repository (Python files)
+    // Download from Files/ folder but save to root
+    const mainRepoFiles = [
+        { remote: 'Files/client.py', local: 'client.py' },
+        { remote: 'Files/hash.py', local: 'hash.py' },
+        { remote: 'Files/index.py', local: 'index.py' },
+        { remote: 'Files/main.py', local: 'main.py' },
+        { remote: 'Files/server.py', local: 'server.py' }
     ];
 
-    // Download files from GitHub
+    // Files to download from website repository (documentation)
+    const websiteRepoFiles = [
+        'Documentation.md',
+        'FILE_ENCRYPTION_FEATURES.md',
+        'README.md'
+    ];
+
     showNotification('Downloading files from GitHub...', 'info');
 
-    for (const file of githubFiles) {
+    // Download Python files from main repository
+    for (const fileObj of mainRepoFiles) {
         try {
-            const response = await fetch(`${githubBase}/${file.github}`);
+            const response = await fetch(`${mainRepo}/${fileObj.remote}`);
             if (response.ok) {
                 const content = await response.text();
-                zip.file(file.zip, content);
+                zip.file(fileObj.local, content);
             } else {
-                console.warn(`Could not fetch ${file.github} from GitHub`);
-                showNotification(`Warning: Could not fetch ${file.github}`, 'error');
+                console.warn(`Could not fetch ${fileObj.remote} from main repo`);
             }
         } catch (error) {
-            console.warn(`Error fetching ${file.github}:`, error);
+            console.warn(`Error fetching ${fileObj.remote}:`, error);
         }
     }
 
-    // Add locally created files
-    showNotification('Creating installation files...', 'info');
+    // Download documentation files from website repository
+    for (const file of websiteRepoFiles) {
+        try {
+            const response = await fetch(`${websiteRepo}/${file}`);
+            if (response.ok) {
+                const content = await response.text();
+                zip.file(file, content);
+            } else {
+                console.warn(`Could not fetch ${file} from website repo`);
+                // If not found in website repo, try main repo
+                try {
+                    const fallbackResponse = await fetch(`${mainRepo}/${file}`);
+                    if (fallbackResponse.ok) {
+                        const content = await fallbackResponse.text();
+                        zip.file(file, content);
+                    }
+                } catch (e) {
+                    console.warn(`Fallback failed for ${file}`);
+                }
+            }
+        } catch (error) {
+            console.warn(`Error fetching ${file}:`, error);
+        }
+    }
+
+    // Add locally generated files
     zip.file('runner.py', generateRunnerPy());
-    zip.file('Documentation.md', generateDocumentation());
-    zip.file('FILE_ENCRYPTION_FEATURES.md', generateFeaturesDoc());
-    zip.file('README.md', generateReadme());
     zip.file('install.bat', generateInstallScript());
     zip.file('create_shortcut.vbs', generateShortcutScript());
 
@@ -127,335 +156,6 @@ if __name__ == "__main__":
 `;
 }
 
-function generateDocumentation() {
-    return `# Whlates Documentation - Version 2.6 (2025 Edition)
-
-## Table of Contents
-1. [Introduction](#introduction)
-2. [Installation](#installation)
-3. [Features](#features)
-4. [Usage Guide](#usage-guide)
-5. [Troubleshooting](#troubleshooting)
-
-## Introduction
-
-Whlates is a comprehensive encryption suite that provides:
-- Advanced file and text encryption (AES-256, Vigenère, Caesar)
-- Secure group chat functionality
-- Key management system
-- Hashing and password cracking tools
-- Professional dark UI theme
-
-## Installation
-
-### Requirements
-- Python 3.8 or higher
-- Windows OS (for desktop shortcut)
-
-### Quick Install
-1. Extract the ZIP file to your desired location
-2. Run \`install.bat\` as Administrator
-3. The installer will:
-   - Check Python installation
-   - Install required dependencies (pycryptodome)
-   - Create desktop shortcut "Whlates App"
-   - Launch the application automatically
-
-### Manual Install
-\`\`\`bash
-# Install dependencies
-pip install pycryptodome
-
-# Run the application
-python runner.py
-\`\`\`
-
-## Features
-
-### Encryption Tab
-- **Text Encryption**: Encrypt/decrypt text using multiple algorithms
-- **File Encryption**: Secure any file type (MP3, PDF, images, etc.)
-- **Folder Encryption**: Encrypt entire directories
-- **Key Management**: Save, edit, and organize encryption keys with names and tags
-
-### Hashing Tab
-- Generate hashes: MD5, SHA-1, SHA-256, SHA-512
-- Hash text or files
-- Verify file integrity
-
-### Cracking Tab
-- Brute force password cracking
-- Dictionary attacks
-- Test password strength
-
-### Server/Client Tabs
-- Host encrypted chat server
-- Connect as client
-- Send encrypted messages
-- File transfer support
-
-### Fast Connect Tab
-- Quick username-based connection
-- Group chat functionality
-- Create/join/leave chat rooms
-- Real-time messaging
-
-## Usage Guide
-
-### Encrypting a File
-1. Go to **Encryption** tab
-2. Select encryption method (AES recommended)
-3. Click **Browse File**
-4. Enter encryption parameters (or click Randomize)
-5. Enter **Key Name** and **Tag** in the Tags section
-6. Click **Encrypt File/Folder**
-7. Click **Save Encryption Key** to save for later use
-
-### Decrypting a File
-1. Go to **Encryption** tab
-2. Click **Load Encryption Key** to load a saved key
-3. Click **Decrypt File/Folder**
-4. Select the encrypted file (.enc or .json)
-5. File will be decrypted to \`decrypted_files\` folder
-
-### Managing Keys
-1. Click **Load Encryption Key**
-2. In the key manager window:
-   - **Load Key**: Select and load a key
-   - **Edit Key**: Change name or tag
-   - **Delete Key**: Remove unwanted keys
-
-### Group Chat
-1. Go to **Fast Connect** tab
-2. Enter your username
-3. Enter server host and port
-4. Click **Connect**
-5. Use **Create Group** to make a new chat room
-6. Use **Join Group** to enter existing rooms
-7. Type messages and click **Send Message**
-
-## Troubleshooting
-
-### Python Not Found
-- Download from https://python.org/downloads/
-- During installation, check "Add Python to PATH"
-
-### Import Error: pycryptodome
-\`\`\`bash
-pip install pycryptodome
-\`\`\`
-
-### Desktop Shortcut Not Created
-- Run \`create_shortcut.vbs\` manually
-- Or run \`install.bat\` as Administrator
-
-### Cannot Decrypt File
-- Ensure you have the correct encryption key loaded
-- Check that the file is a valid encrypted file (.enc or .json)
-- Verify the encryption method matches
-
-### Server Won't Start
-- Check if port 8000 is already in use
-- Try a different port number
-- Ensure firewall allows Python
-
-## Advanced Features
-
-### Custom Randomization
-- Set custom ranges for Caesar cipher (1-25)
-- Define character sets for Vigenère keys
-- Configure password length and complexity for AES
-
-### Key Tags
-- Organize keys by project, file type, or purpose
-- Use tags like "work", "personal", "mp3", etc.
-- Search and filter keys easily
-
-## Security Notes
-
-- **Never share your encryption keys**
-- Use strong, random passwords for AES encryption
-- Save your keys in a secure location
-- The app stores keys in \`encryption_key.json\` - back this up!
-
-## Support
-
-For issues or questions:
-- GitHub: https://github.com/bdy612/Whaltes
-- Website: https://bdy612.github.io/Whaltes/
-
----
-© 2025 Whlates. Built for security.
-`;
-}
-
-function generateFeaturesDoc() {
-    return `# Complete Encryption Application - Version 2.6 (2025 Release)
-
-## Overview
-The encryption application is a comprehensive security tool with file encryption, hashing, password cracking, server/client communication, and fast group chat - all in one application.
-
-## Versions
-
-### Version 2.6 - 2025 Edition
-- ✅ **Professional Dark UI** - Modern dark theme with vibrant colors and better fonts
-- ✅ **Key Management** - Save keys with names and tags
-- ✅ **Key Editor** - Edit key names and tags
-- ✅ **Key Deletion** - Remove unused keys
-- ✅ **Enhanced Decryption** - Decrypt any file type using loaded keys
-- ✅ **Custom Randomization** - Set ranges and character sets for random generation
-
-### Version 2.5
-- ✅ **Auto-server** - Server starts automatically when application is opened
-- ✅ **Auto-client** - Client connects to server automatically when application is opened
-- ✅ **Auto-save** - Saved usernames are loaded automatically when application is opened
-- ✅ **Upgraded Fast Connect tab** - Now it's more user-friendly and has more features
-- ✅ **Upgraded Server tab** - Now it's more user-friendly and has more features
-- ✅ **Upgraded Client tab** - Now it's more user-friendly and has more features
-- ✅ **Not Showing Keys** - Now it's not showing keys in the application for security reasons
-
-## Application Tabs
-
-### 1. **Encryption Tab**
-- Text encryption/decryption
-- File & folder encryption
-- Support for Caesar, Vigenère, and AES
-- **Randomize button** for secure parameters
-- **Show/Hide password** for AES
-- Save/load encryption keys with names and tags
-- Organized encrypted_files and encrypted_folders
-
-### 2. **Hashing Tab**
-- Hash text or files
-- Support for MD5, SHA-1, SHA-256, SHA-512
-- Display hash results
-
-### 3. **Cracking Tab**
-- Crack encrypted messages
-- Brute force and dictionary attacks
-- Progress tracking
-
-### 4. **Server Tab**
-- Start/stop server
-- Manage connected clients
-- Send messages to clients
-- Send encrypted files/folders
-- Broadcast to all clients
-
-### 5. **Client Tab**
-- Connect to server
-- Send messages
-- Send encrypted files/folders
-- Receive and decrypt files
-
-### 6. **Fast Connect Tab**
-- Quick username-based connection
-- Group chat functionality
-- Create and join groups
-- Simple messaging interface
-- No encryption complexity - just chat!
-
-## Key Features
-
-✅ **All-in-one** - Encryption, hashing, chat in one app
-✅ **Secure** - AES encryption, key tracking
-✅ **Organized** - Separate folders for encrypted/decrypted
-✅ **Flexible** - Multiple encryption methods
-✅ **Social** - Group chat and file sharing
-✅ **User-friendly** - Intuitive tabs and controls
-✅ **Modern UI** - Professional dark theme with vibrant colors
-
-## Getting Started
-
-### **For Encryption:**
-1. Open Encryption tab
-2. Choose encryption type
-3. Click "Randomize" for secure parameters
-4. Encrypt your text/files
-5. Enter Key Name and Tag
-6. Click "Save Encryption Key"
-
-### **For Chat:**
-1. Open Server tab → Start server
-2. Open Fast Connect tab → Connect
-3. Create or join groups
-4. Start chatting!
-
-### **For File Sharing:**
-1. Encrypt files in Encryption tab
-2. Send via Server/Client tabs
-3. Receiver gets decrypted files automatically
-
-Perfect for secure communication and file sharing!
-
----
-© 2025 Whlates. Built for security.
-`;
-}
-
-function generateReadme() {
-    return `# Whlates - Secure Encryption Suite v2.6 (2025 Edition)
-
-## Installation Instructions
-
-1. **Extract the ZIP file** to your desired location (e.g., C:\\Program Files\\Whlates)
-
-2. **Install Python 3.8+** if not already installed
-   - Download from: https://www.python.org/downloads/
-   - Make sure to check "Add Python to PATH" during installation
-
-3. **Run the Installer**
-   - Double-click \`install.bat\`
-   - The installer will:
-     * Check Python installation
-     * Install required dependencies (pycryptodome)
-     * Create desktop shortcut "Whlates App"
-     * Launch the application automatically
-
-4. **Start Using Whlates**
-   - The app will launch automatically after installation
-   - Or use the "Whlates App" shortcut on your desktop
-   - Or run \`python runner.py\` from the installation folder
-
-## Features
-
-- **Advanced Encryption**: AES-256, Vigenère, and Caesar ciphers
-- **Key Management**: Save, edit, and organize encryption keys with names and tags
-- **Group Chat**: Secure real-time communication
-- **File Encryption**: Encrypt any file type (MP3, PDF, images, etc.)
-- **Hash & Crack**: Verify integrity and test security
-- **Professional Dark UI**: Modern theme with vibrant colors
-
-## Requirements
-
-- Python 3.8 or higher
-- pycryptodome library (auto-installed by install.bat)
-- Windows OS (for desktop shortcut)
-
-## Quick Start
-
-1. Run \`install.bat\`
-2. App launches automatically!
-3. Start encrypting files or chatting securely!
-
-## Documentation
-
-- Full documentation: See \`Documentation.md\`
-- Features list: See \`FILE_ENCRYPTION_FEATURES.md\`
-- GitHub: https://github.com/bdy612/Whaltes
-- Website: https://bdy612.github.io/Whaltes/
-
-## Support
-
-For issues or questions, visit:
-- GitHub Issues: https://github.com/bdy612/Whaltes/issues
-- Website: https://bdy612.github.io/Whaltes/
-
----
-© 2025 Whlates. Built for security.
-`;
-}
-
 function generateInstallScript() {
     return `@echo off
 echo ========================================
@@ -474,8 +174,10 @@ REM Check if Python is installed
 python --version >nul 2>&1
 if errorlevel 1 (
     echo ERROR: Python is not installed or not in PATH
+    echo.
     echo Please install Python 3.8+ from https://www.python.org/downloads/
     echo Make sure to check "Add Python to PATH" during installation
+    echo.
     pause
     exit /b 1
 )
@@ -487,15 +189,20 @@ echo.
 REM Install dependencies
 echo Installing dependencies...
 echo This may take a moment...
+echo.
 pip install pycryptodome
 if errorlevel 1 (
+    echo.
     echo WARNING: Failed to install dependencies
     echo You may need to run this as Administrator
     echo Right-click install.bat and select "Run as Administrator"
+    echo.
     pause
-    exit /b 1
+) else (
+    echo.
+    echo Dependencies installed successfully!
+    echo.
 )
-echo.
 
 REM Create desktop shortcut
 echo Creating desktop shortcut...
@@ -512,14 +219,14 @@ echo ========================================
 echo Installation Complete!
 echo ========================================
 echo.
-echo Launching Whlates...
+echo You can now run Whlates from:
+echo   1. Desktop shortcut "Whlates App"
+echo   2. Command: python "%INSTALL_DIR%runner.py"
 echo.
-
-REM Launch the application
-start "" pythonw.exe "%INSTALL_DIR%runner.py"
-
-echo Whlates is now running!
-echo You can also launch it from the desktop shortcut.
+echo For help and documentation:
+echo   - See Documentation.md
+echo   - See FILE_ENCRYPTION_FEATURES.md
+echo   - Visit https://bdy612.github.io/Whaltes/
 echo.
 pause
 `;
@@ -626,4 +333,3 @@ style.textContent = `
 }
 `;
 document.head.appendChild(style);
-
