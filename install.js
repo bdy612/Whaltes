@@ -51,13 +51,13 @@ async function createAndDownloadZip() {
     // GitHub repository base URL (raw content)
     const githubBase = 'https://raw.githubusercontent.com/bdy612/Whaltes/main';
 
-    // Files to download from GitHub repository
+    // Files to download from GitHub repository (without Files/ folder in ZIP)
     const githubFiles = [
-        'Files/client.py',
-        'Files/hash.py',
-        'Files/index.py',
-        'Files/main.py',
-        'Files/server.py'
+        { github: 'Files/client.py', zip: 'client.py' },
+        { github: 'Files/hash.py', zip: 'hash.py' },
+        { github: 'Files/index.py', zip: 'index.py' },
+        { github: 'Files/main.py', zip: 'main.py' },
+        { github: 'Files/server.py', zip: 'server.py' }
     ];
 
     // Download files from GitHub
@@ -65,16 +65,16 @@ async function createAndDownloadZip() {
 
     for (const file of githubFiles) {
         try {
-            const response = await fetch(`${githubBase}/${file}`);
+            const response = await fetch(`${githubBase}/${file.github}`);
             if (response.ok) {
                 const content = await response.text();
-                zip.file(file, content);
+                zip.file(file.zip, content);
             } else {
-                console.warn(`Could not fetch ${file} from GitHub`);
-                showNotification(`Warning: Could not fetch ${file}`, 'error');
+                console.warn(`Could not fetch ${file.github} from GitHub`);
+                showNotification(`Warning: Could not fetch ${file.github}`, 'error');
             }
         } catch (error) {
-            console.warn(`Error fetching ${file}:`, error);
+            console.warn(`Error fetching ${file.github}:`, error);
         }
     }
 
@@ -115,7 +115,7 @@ Runner Script
 """
 
 import tkinter as tk
-from Files.index import EncryptionApp
+from index import EncryptionApp
 
 def main():
     root = tk.Tk()
