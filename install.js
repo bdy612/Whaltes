@@ -54,11 +54,7 @@ async function createAndDownloadZip() {
 
     // Files to download and combine into Super_Main.py
     const pythonFiles = [
-        'Files/hash.py',
-        'Files/main.py',
-        'Files/server.py',
-        'Files/client.py',
-        'Files/index.py'
+        'Super_Main.py'
     ];
 
     // Files to download from website repository (documentation)
