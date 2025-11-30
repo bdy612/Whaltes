@@ -24,26 +24,26 @@ The encryption application is a comprehensive security tool with file encryption
 
 ### Version 2.4
 - ✅ **Integrated Fast Connect tab** into main application
-- ✅ Group chat functionality
-- ✅ Username-based quick connection
-- ✅ Create/join/leave groups
-- ✅ Group message tagging
+- ✅ **Group chat functionality**
+- ✅ **Username-based quick connection**
+- ✅ **Create/join/leave groups**
+- ✅ **Group message tagging**
 
 ### Version 2.3
-- ✅ Randomize parameters button
-- ✅ Show/Hide password for AES
-- ✅ Password masking by default
+- ✅ **Randomize parameters button**
+- ✅ **Show/Hide password for AES**
+- ✅ **Password masking by default**
 
 ### Version 2.2
-- ✅ Encrypted and decrypted files with key tracking
-- ✅ key.json for each decrypted file/folder
+- ✅ **Encrypted and decrypted files** with key tracking
+- ✅ **key.json for each decrypted file/folder**
 
 ### Version 2.1
-- ✅ EaHaSaR (Encrypt and Hash and Save and Receive)
-- ✅ File and folder encryption/decryption
+- ✅ **EaHaSaR** (Encrypt and Hash and Save and Receive)
+- ✅ **File and folder encryption/decryption**
 
 ### Version 2.0
-- ✅ Hashing functionality added
+- ✅ **Hashing functionality added**
 
 ## Application Tabs
 
@@ -232,3 +232,4 @@ eencryption/
 3. Receiver gets decrypted files automatically
 
 Perfect for secure communication and file sharing!
+
