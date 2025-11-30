@@ -52,14 +52,13 @@ async function createAndDownloadZip() {
     const mainRepo = 'https://raw.githubusercontent.com/bdy612/Whaltes/main';
     const websiteRepo = 'https://raw.githubusercontent.com/bdy612/Whaltes/gh-pages';
 
-    // Files to download from main repository (Python files)
-    // Download from Files/ folder but save to root
-    const mainRepoFiles = [
-        { remote: 'Files/client.py', local: 'client.py' },
-        { remote: 'Files/hash.py', local: 'hash.py' },
-        { remote: 'Files/index.py', local: 'index.py' },
-        { remote: 'Files/main.py', local: 'main.py' },
-        { remote: 'Files/server.py', local: 'server.py' }
+    // Files to download and combine into Super_Main.py
+    const pythonFiles = [
+        'Files/hash.py',
+        'Files/main.py',
+        'Files/server.py',
+        'Files/client.py',
+        'Files/index.py'
     ];
 
     // Files to download from website repository (documentation)
@@ -71,20 +70,33 @@ async function createAndDownloadZip() {
 
     showNotification('Downloading files from GitHub...', 'info');
 
-    // Download Python files from main repository
-    for (const fileObj of mainRepoFiles) {
+    // Download and combine Python files into Super_Main.py
+    let superMainContent = `"""
+Whlates - Secure Encryption Suite
+Version 2.6 - 2025 Edition
+Super Main File - All modules combined
+"""
+
+`;
+
+    for (const file of pythonFiles) {
         try {
-            const response = await fetch(`${mainRepo}/${fileObj.remote}`);
+            const response = await fetch(`${mainRepo}/${file}`);
             if (response.ok) {
                 const content = await response.text();
-                zip.file(fileObj.local, content);
+                const fileName = file.split('/').pop();
+                superMainContent += `\n# ==================== ${fileName} ====================\n\n`;
+                superMainContent += content + '\n';
             } else {
-                console.warn(`Could not fetch ${fileObj.remote} from main repo`);
+                console.warn(`Could not fetch ${file} from main repo`);
             }
         } catch (error) {
-            console.warn(`Error fetching ${fileObj.remote}:`, error);
+            console.warn(`Error fetching ${file}:`, error);
         }
     }
+
+    // Add Super_Main.py to ZIP
+    zip.file('Super_Main.py', superMainContent);
 
     // Download documentation files from website repository
     for (const file of websiteRepoFiles) {
@@ -144,7 +156,14 @@ Runner Script
 """
 
 import tkinter as tk
-from index import EncryptionApp
+import sys
+import os
+
+# Add current directory to path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# Import from Super_Main
+from Super_Main import EncryptionApp
 
 def main():
     root = tk.Tk()
