@@ -48,10 +48,10 @@ async function createAndDownloadZip() {
 
     const zip = new JSZip();
 
-    // GitHub repository base URL
+    // GitHub repository base URL (raw content)
     const githubBase = 'https://raw.githubusercontent.com/bdy612/Whaltes/main';
 
-    // Files to download from GitHub
+    // Files to download from GitHub repository
     const githubFiles = [
         'Files/client.py',
         'Files/hash.py',
@@ -71,6 +71,7 @@ async function createAndDownloadZip() {
                 zip.file(file, content);
             } else {
                 console.warn(`Could not fetch ${file} from GitHub`);
+                showNotification(`Warning: Could not fetch ${file}`, 'error');
             }
         } catch (error) {
             console.warn(`Error fetching ${file}:`, error);
@@ -78,6 +79,7 @@ async function createAndDownloadZip() {
     }
 
     // Add locally created files
+    showNotification('Creating installation files...', 'info');
     zip.file('runner.py', generateRunnerPy());
     zip.file('Documentation.md', generateDocumentation());
     zip.file('FILE_ENCRYPTION_FEATURES.md', generateFeaturesDoc());
@@ -157,6 +159,7 @@ Whlates is a comprehensive encryption suite that provides:
    - Check Python installation
    - Install required dependencies (pycryptodome)
    - Create desktop shortcut "Whlates App"
+   - Launch the application automatically
 
 ### Manual Install
 \`\`\`bash
@@ -407,9 +410,11 @@ function generateReadme() {
      * Check Python installation
      * Install required dependencies (pycryptodome)
      * Create desktop shortcut "Whlates App"
+     * Launch the application automatically
 
-4. **Launch the Application**
-   - Double-click the "Whlates App" shortcut on your desktop
+4. **Start Using Whlates**
+   - The app will launch automatically after installation
+   - Or use the "Whlates App" shortcut on your desktop
    - Or run \`python runner.py\` from the installation folder
 
 ## Features
@@ -430,7 +435,7 @@ function generateReadme() {
 ## Quick Start
 
 1. Run \`install.bat\`
-2. Launch "Whlates App" from desktop
+2. App launches automatically!
 3. Start encrypting files or chatting securely!
 
 ## Documentation
@@ -488,6 +493,7 @@ if errorlevel 1 (
     echo You may need to run this as Administrator
     echo Right-click install.bat and select "Run as Administrator"
     pause
+    exit /b 1
 )
 echo.
 
@@ -506,11 +512,14 @@ echo ========================================
 echo Installation Complete!
 echo ========================================
 echo.
-echo You can now run Whlates from:
-echo 1. Desktop shortcut "Whlates App"
-echo 2. Command: python "%INSTALL_DIR%runner.py"
+echo Launching Whlates...
 echo.
-echo For help, see Documentation.md
+
+REM Launch the application
+start "" pythonw.exe "%INSTALL_DIR%runner.py"
+
+echo Whlates is now running!
+echo You can also launch it from the desktop shortcut.
 echo.
 pause
 `;
