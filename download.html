@@ -21,7 +21,7 @@
                     <a href="download.html" class="active">Download</a>
                     <a href="points.html">Points</a>
                 </div>
-                <a href="download.html" class="cta-button">Get Started</a>
+                <a href="login.html" class="cta-button" id="navAuthButton">Sign In</a>
             </nav>
         </div>
     </header>
@@ -95,7 +95,16 @@
     </footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="auth.js"></script>
     <script src="install.js"></script>
+    <script>
+        // Update nav button based on auth status
+        if (checkAuth()) {
+            const user = getCurrentUser();
+            document.getElementById('navAuthButton').href = 'account.html';
+            document.getElementById('navAuthButton').innerHTML = '<i class="fas fa-user"></i> Account';
+        }
+    </script>
 </body>
 
 </html>
