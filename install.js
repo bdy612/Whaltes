@@ -54,7 +54,8 @@ async function createAndDownloadZip() {
 
     // Files to download and combine into Super_Main.py
     const pythonFiles = [
-        'Super_Main.py'
+        'Super_Main.py',
+        'Central_Server.py'
     ];
 
     // Files to download from website repository (documentation)
@@ -319,5 +320,6 @@ style.textContent = `
 }
 `;
 document.head.appendChild(style);
+
 
 
