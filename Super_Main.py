@@ -3005,22 +3005,24 @@ class EncryptionApp:
                 self.update_server_log(error_msg)
     
     # Fast Connect Helper Methods
-    # Fast Connect Helper Methods
     def load_fc_data(self):
-        """Load Fast Connect data (username, contacts, groups)"""
+        """Load Fast Connect data"""
         try:
             data_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fc_data.json")
             if os.path.exists(data_file):
                 with open(data_file, 'r') as f:
                     self.fc_data = json.load(f)
+                # Ensure new keys exist
+                if "server_ip" not in self.fc_data: self.fc_data["server_ip"] = "127.0.0.1"
+                if "friends" not in self.fc_data: self.fc_data["friends"] = []
             else:
                 self.fc_data = {
                     "username": "",
-                    "contacts": {},  # {ip: name}
-                    "groups": {}     # {id: name}
+                    "server_ip": "127.0.0.1",
+                    "friends": [] # List of friend usernames
                 }
         except:
-            self.fc_data = {"username": "", "contacts": {}, "groups": {}}
+            self.fc_data = {"username": "", "server_ip": "127.0.0.1", "friends": []}
 
     def save_fc_data(self):
         """Save Fast Connect data"""
@@ -3031,28 +3033,16 @@ class EncryptionApp:
         except Exception as e:
             print(f"Error saving data: {e}")
 
-    def get_local_ip(self):
-        """Get local IP address"""
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.connect(("8.8.8.8", 80))
-            ip = s.getsockname()[0]
-            s.close()
-            return ip
-        except:
-            return "127.0.0.1"
-
     # Fast Connect Tab
     def setup_fast_connect_tab(self):
-        """Setup the Fast Connect tab with new UI"""
+        """Setup the Fast Connect tab with Central Server UI"""
         
         # Initialize variables
         self.load_fc_data()
-        self.fc_server = None
-        self.fc_clients = {} # {id: Client}
-        self.fc_unknown_users = [] # List of (ip, port)
-        self.fc_current_chat_id = None # IP or Group ID
-        self.fc_chat_histories = {} # {id: [messages]}
+        self.fc_socket = None
+        self.fc_connected = False
+        self.fc_current_chat = None # Username
+        self.fc_chat_histories = {} # {username: [messages]}
         
         # Main Container - Split View
         paned = tk.PanedWindow(self.fast_connect_frame, orient=tk.HORIZONTAL, bg="#0f172a")
@@ -3068,7 +3058,22 @@ class EncryptionApp:
         
         # === Left Panel Content ===
         
-        # 1. Profile Section
+        # 1. Server Connection
+        server_frame = ttk.LabelFrame(left_panel, text="Connection", padding="5")
+        server_frame.pack(fill=tk.X, pady=(0, 10))
+        
+        ttk.Label(server_frame, text="Server IP:").pack(anchor=tk.W)
+        self.fc_server_ip = ttk.Entry(server_frame)
+        self.fc_server_ip.insert(0, self.fc_data.get("server_ip", "127.0.0.1"))
+        self.fc_server_ip.pack(fill=tk.X, pady=2)
+        
+        self.fc_connect_btn = ttk.Button(server_frame, text="Connect", command=self.fc_toggle_connection)
+        self.fc_connect_btn.pack(fill=tk.X, pady=2)
+        
+        self.fc_status_lbl = ttk.Label(server_frame, text="Status: Offline", foreground="gray")
+        self.fc_status_lbl.pack(anchor=tk.W)
+
+        # 2. Profile
         profile_frame = ttk.LabelFrame(left_panel, text="My Profile", padding="5")
         profile_frame.pack(fill=tk.X, pady=(0, 10))
         
@@ -3076,55 +3081,27 @@ class EncryptionApp:
         self.fc_username_entry = ttk.Entry(profile_frame)
         self.fc_username_entry.insert(0, self.fc_data.get("username", ""))
         self.fc_username_entry.pack(fill=tk.X, pady=2)
-        self.fc_username_entry.bind("<FocusOut>", self.fc_save_username)
-        self.fc_username_entry.bind("<Return>", self.fc_save_username)
+        self.fc_username_entry.bind("<FocusOut>", self.fc_save_settings)
         
-        self.fc_status_lbl = ttk.Label(profile_frame, text="Status: Offline", foreground="gray")
-        self.fc_status_lbl.pack(anchor=tk.W, pady=2)
+        # 3. Friends List
+        friends_frame = ttk.LabelFrame(left_panel, text="Friends", padding="5")
+        friends_frame.pack(fill=tk.BOTH, expand=True)
         
-        self.fc_connect_btn = ttk.Button(profile_frame, text="Go Online (Start Server)", command=self.fc_toggle_online)
-        self.fc_connect_btn.pack(fill=tk.X, pady=2)
+        # Add Friend Area
+        add_frame = ttk.Frame(friends_frame)
+        add_frame.pack(fill=tk.X, pady=(0, 5))
+        self.fc_add_entry = ttk.Entry(add_frame)
+        self.fc_add_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
+        ttk.Button(add_frame, text="+", width=3, command=self.fc_add_friend).pack(side=tk.RIGHT)
         
-        # 2. Contacts Section
-        contacts_frame = ttk.LabelFrame(left_panel, text="Contacts", padding="5")
-        contacts_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
-        
-        self.fc_contacts_list = tk.Listbox(contacts_frame, bg="#1e293b", fg="#f8fafc", borderwidth=0, highlightthickness=0)
-        self.fc_contacts_list.pack(fill=tk.BOTH, expand=True)
-        self.fc_contacts_list.bind("<<ListboxSelect>>", self.fc_on_contact_select)
-        
-        # 3. Unknown Users Section
-        unknown_frame = ttk.LabelFrame(left_panel, text="Unknown / Requests", padding="5")
-        unknown_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
-        
-        self.fc_unknown_list = tk.Listbox(unknown_frame, bg="#1e293b", fg="#f8fafc", borderwidth=0, highlightthickness=0, height=4)
-        self.fc_unknown_list.pack(fill=tk.BOTH, expand=True)
-        self.fc_unknown_list.bind("<<ListboxSelect>>", self.fc_on_unknown_select)
-        
-        btn_frame = ttk.Frame(unknown_frame)
-        btn_frame.pack(fill=tk.X)
-        self.fc_approve_btn = ttk.Button(btn_frame, text="Approve", command=self.fc_approve_user, state="disabled")
-        self.fc_approve_btn.pack(side=tk.LEFT, expand=True, fill=tk.X)
-        self.fc_decline_btn = ttk.Button(btn_frame, text="Decline", command=self.fc_decline_user, state="disabled")
-        self.fc_decline_btn.pack(side=tk.LEFT, expand=True, fill=tk.X)
-        
-        # 4. Groups Section
-        groups_frame = ttk.LabelFrame(left_panel, text="Groups", padding="5")
-        groups_frame.pack(fill=tk.BOTH, expand=True)
-        
-        self.fc_groups_list = tk.Listbox(groups_frame, bg="#1e293b", fg="#f8fafc", borderwidth=0, highlightthickness=0, height=4)
-        self.fc_groups_list.pack(fill=tk.BOTH, expand=True)
-        self.fc_groups_list.bind("<<ListboxSelect>>", self.fc_on_group_select)
-        
-        grp_btn_frame = ttk.Frame(groups_frame)
-        grp_btn_frame.pack(fill=tk.X)
-        ttk.Button(grp_btn_frame, text="Create", command=self.fc_create_group).pack(side=tk.LEFT, expand=True, fill=tk.X)
-        ttk.Button(grp_btn_frame, text="Join", command=self.fc_join_group_dialog).pack(side=tk.LEFT, expand=True, fill=tk.X)
+        self.fc_friends_list = tk.Listbox(friends_frame, bg="#1e293b", fg="#f8fafc", borderwidth=0, highlightthickness=0)
+        self.fc_friends_list.pack(fill=tk.BOTH, expand=True)
+        self.fc_friends_list.bind("<<ListboxSelect>>", self.fc_on_friend_select)
         
         # === Right Panel Content ===
         
         # Header
-        self.fc_chat_header = ttk.Label(right_panel, text="Select a contact or group to chat", font=("Segoe UI", 12, "bold"))
+        self.fc_chat_header = ttk.Label(right_panel, text="Select a friend to chat", font=("Segoe UI", 12, "bold"))
         self.fc_chat_header.pack(fill=tk.X, pady=(0, 10))
         
         # Chat Log
@@ -3142,200 +3119,122 @@ class EncryptionApp:
         self.fc_send_btn = ttk.Button(input_frame, text="Send", command=self.fc_send_message, state="disabled")
         self.fc_send_btn.pack(side=tk.RIGHT)
         
-        # Refresh lists
-        self.fc_refresh_lists()
+        self.fc_refresh_friends_list()
 
     # === Logic ===
     
-    def fc_save_username(self, event=None):
-        username = self.fc_username_entry.get().strip()
-        if username:
-            self.fc_data["username"] = username
-            self.save_fc_data()
-    
-    def fc_refresh_lists(self):
-        """Refresh all listboxes from data"""
-        # Contacts
-        self.fc_contacts_list.delete(0, tk.END)
-        for ip, name in self.fc_data["contacts"].items():
-            status = " (Online)" if self.fc_is_online(ip) else ""
-            self.fc_contacts_list.insert(tk.END, f"{name}{status}")
-            
-        # Groups
-        self.fc_groups_list.delete(0, tk.END)
-        for gid, name in self.fc_data["groups"].items():
-            self.fc_groups_list.insert(tk.END, name)
-            
-        # Unknowns
-        self.fc_unknown_list.delete(0, tk.END)
-        for ip, port in self.fc_unknown_users:
-            self.fc_unknown_list.insert(tk.END, f"ID: {ip}")
+    def fc_save_settings(self, event=None):
+        self.fc_data["username"] = self.fc_username_entry.get().strip()
+        self.fc_data["server_ip"] = self.fc_server_ip.get().strip()
+        self.save_fc_data()
 
-    def fc_is_online(self, ip):
-        # Check if we have an active connection or if they are connected to us
-        # For now, simple check if they are in our server clients
-        if self.fc_server:
-            for sock, addr in self.fc_server.clients:
-                if addr[0] == ip:
-                    return True
-        return False
-
-    def fc_toggle_online(self):
-        if self.fc_server:
-            # Stop server
-            self.fc_server.close()
-            self.fc_server = None
+    def fc_toggle_connection(self):
+        if self.fc_connected:
+            # Disconnect
+            self.fc_connected = False
+            if self.fc_socket:
+                self.fc_socket.close()
             self.fc_status_lbl.config(text="Status: Offline", foreground="gray")
-            self.fc_connect_btn.config(text="Go Online (Start Server)")
-            self.fc_log_system("Server stopped.")
+            self.fc_connect_btn.config(text="Connect")
+            self.fc_log_system("Disconnected from server.")
         else:
-            # Start server
-            try:
-                # Use port 9000 for Fast Connect to avoid conflict
-                self.fc_server = Server(self.get_local_ip(), 9000)
-                self.fc_server.set_message_handler(self.fc_handle_server_message)
-                self.fc_status_lbl.config(text=f"Status: Online ({self.get_local_ip()}:9000)", foreground="#10b981")
-                self.fc_connect_btn.config(text="Go Offline")
-                self.fc_log_system(f"Server started on {self.get_local_ip()}:9000")
-            except Exception as e:
-                messagebox.showerror("Error", f"Could not start server: {e}")
-
-    def fc_handle_server_message(self, client_address, message):
-        """Handle messages received by our server"""
-        ip = client_address[0]
-        
-        try:
-            data = json.loads(message)
-            msg_type = data.get("type")
+            # Connect
+            ip = self.fc_server_ip.get().strip()
+            username = self.fc_username_entry.get().strip()
             
-            if msg_type == "chat":
-                sender_name = data.get("username", "Unknown")
-                text = data.get("message", "")
+            if not username:
+                messagebox.showwarning("Warning", "Please enter a username first.")
+                return
                 
-                # Check if known contact
-                if ip in self.fc_data["contacts"]:
-                    name = self.fc_data["contacts"][ip]
-                    self.fc_add_to_history(ip, f"{name}: {text}")
-                    if self.fc_current_chat_id == ip:
-                        self.fc_refresh_chat()
-                else:
-                    # Unknown user
-                    if (ip, client_address[1]) not in self.fc_unknown_users:
-                        self.fc_unknown_users.append((ip, client_address[1]))
-                        self.root.after(0, self.fc_refresh_lists)
-                    
-                    self.fc_add_to_history(ip, f"Unknown ({ip}): {text}")
-                    
-        except:
-            pass
+            try:
+                self.fc_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.fc_socket.connect((ip, 9999))
+                self.fc_connected = True
+                
+                # Start listener
+                threading.Thread(target=self.fc_listen_loop, daemon=True).start()
+                
+                # Send Login
+                self.fc_send_json({"type": "login", "username": username})
+                
+                self.fc_status_lbl.config(text="Status: Connected", foreground="#10b981")
+                self.fc_connect_btn.config(text="Disconnect")
+                self.fc_save_settings()
+                
+            except Exception as e:
+                self.fc_connected = False
+                messagebox.showerror("Error", f"Could not connect to {ip}:9999\n{e}")
 
-    def fc_approve_user(self):
-        selection = self.fc_unknown_list.curselection()
-        if not selection: return
+    def fc_listen_loop(self):
+        while self.fc_connected:
+            try:
+                message = self.fc_socket.recv(4096).decode('utf-8')
+                if not message: break
+                
+                data = json.loads(message)
+                self.root.after(0, lambda: self.fc_handle_incoming(data))
+            except:
+                break
         
-        index = selection[0]
-        ip, port = self.fc_unknown_users[index]
-        
-        # Show overlay to get name
-        self.show_input_overlay("Approve Contact", f"Enter name for {ip}:", 
-                              lambda name: self.fc_finalize_approval(ip, port, name))
+        if self.fc_connected: # If loop broke but we thought we were connected
+            self.fc_connected = False
+            self.root.after(0, lambda: self.fc_status_lbl.config(text="Status: Disconnected", foreground="red"))
+            self.root.after(0, lambda: self.fc_connect_btn.config(text="Connect"))
 
-    def fc_finalize_approval(self, ip, port, name):
-        if name:
-            self.fc_data["contacts"][ip] = name
-            self.save_fc_data()
+    def fc_handle_incoming(self, data):
+        msg_type = data.get("type")
+        
+        if msg_type == "chat":
+            sender = data.get("sender")
+            text = data.get("message")
+            self.fc_add_to_history(sender, f"{sender}: {text}")
+            if self.fc_current_chat == sender:
+                self.fc_refresh_chat()
             
-            # Remove from unknown
-            self.fc_unknown_users = [u for u in self.fc_unknown_users if u[0] != ip]
+            # Auto-add to friends list if not there?
+            if sender not in self.fc_data["friends"]:
+                self.fc_data["friends"].append(sender)
+                self.fc_refresh_friends_list()
+                self.save_fc_data()
+                
+        elif msg_type == "system":
+            msg = data.get("message")
+            self.fc_log_system(msg)
+
+    def fc_add_friend(self):
+        target = self.fc_add_entry.get().strip()
+        if target:
+            if target not in self.fc_data["friends"]:
+                self.fc_data["friends"].append(target)
+                self.save_fc_data()
+                self.fc_refresh_friends_list()
             
-            self.fc_refresh_lists()
-            self.fc_log_system(f"Added {name} to contacts.")
-
-    def fc_decline_user(self):
-        selection = self.fc_unknown_list.curselection()
-        if not selection: return
-        
-        index = selection[0]
-        ip, port = self.fc_unknown_users[index]
-        
-        # Remove from list (and maybe kick from server)
-        self.fc_unknown_users.pop(index)
-        if self.fc_server:
-            self.fc_server.kick_client((ip, port))
+            # Send request to server (to link/notify)
+            if self.fc_connected:
+                self.fc_send_json({"type": "add_friend", "target": target})
             
-        self.fc_refresh_lists()
+            self.fc_add_entry.delete(0, tk.END)
 
-    def fc_create_group(self):
-        # Create a group (Host a server)
-        # In this P2P model, 'Creating a Group' just means giving your ID to others
-        # We'll generate a shareable ID
-        my_id = f"{self.get_local_ip()}:9000"
-        
-        self.show_input_overlay("Create Group", "Enter Group Name:", 
-                              lambda name: self.fc_finalize_group_create(name, my_id))
+    def fc_refresh_friends_list(self):
+        self.fc_friends_list.delete(0, tk.END)
+        for friend in self.fc_data["friends"]:
+            self.fc_friends_list.insert(tk.END, friend)
 
-    def fc_finalize_group_create(self, name, my_id):
-        if name:
-            # We add it to our groups list as "My Group"
-            self.fc_data["groups"][my_id] = f"{name} (Host)"
-            self.save_fc_data()
-            self.fc_refresh_lists()
-            
-            # Copy ID to clipboard
-            self.root.clipboard_clear()
-            self.root.clipboard_append(my_id)
-            messagebox.showinfo("Group Created", f"Group ID copied to clipboard:\n{my_id}\n\nShare this ID with others to join.")
-
-    def fc_join_group_dialog(self):
-        self.show_input_overlay("Join Group", "Enter Group ID (IP:Port):", self.fc_finalize_join)
-
-    def fc_finalize_join(self, group_id):
-        if group_id:
-            # Ask for name
-            self.show_input_overlay("Group Name", "Name this group:", 
-                                  lambda name: self.fc_add_group(group_id, name))
-
-    def fc_add_group(self, group_id, name):
-        if name:
-            self.fc_data["groups"][group_id] = name
-            self.save_fc_data()
-            self.fc_refresh_lists()
-
-    def fc_on_contact_select(self, event):
-        selection = self.fc_contacts_list.curselection()
+    def fc_on_friend_select(self, event):
+        selection = self.fc_friends_list.curselection()
         if selection:
-            index = selection[0]
-            # Find IP from index (ordered same as list)
-            ip = list(self.fc_data["contacts"].keys())[index]
-            name = self.fc_data["contacts"][ip]
-            
-            self.fc_current_chat_id = ip
-            self.fc_chat_header.config(text=f"Chat with {name}")
+            friend = self.fc_friends_list.get(selection[0])
+            self.fc_current_chat = friend
+            self.fc_chat_header.config(text=f"Chat with {friend}")
             self.fc_send_btn.config(state="normal")
             self.fc_refresh_chat()
-
-    def fc_on_group_select(self, event):
-        selection = self.fc_groups_list.curselection()
-        if selection:
-            index = selection[0]
-            gid = list(self.fc_data["groups"].keys())[index]
-            name = self.fc_data["groups"][gid]
-            
-            self.fc_current_chat_id = gid
-            self.fc_chat_header.config(text=f"Group: {name}")
-            self.fc_send_btn.config(state="normal")
-            self.fc_refresh_chat()
-
-    def fc_on_unknown_select(self, event):
-        self.fc_approve_btn.config(state="normal")
-        self.fc_decline_btn.config(state="normal")
 
     def fc_refresh_chat(self):
         self.fc_chat_log.config(state="normal")
         self.fc_chat_log.delete("1.0", tk.END)
         
-        if self.fc_current_chat_id in self.fc_chat_histories:
-            for msg in self.fc_chat_histories[self.fc_current_chat_id]:
+        if self.fc_current_chat in self.fc_chat_histories:
+            for msg in self.fc_chat_histories[self.fc_current_chat]:
                 self.fc_chat_log.insert(tk.END, msg + "\n")
         
         self.fc_chat_log.see(tk.END)
@@ -3348,93 +3247,39 @@ class EncryptionApp:
 
     def fc_send_message(self):
         text = self.fc_msg_entry.get().strip()
-        if not text or not self.fc_current_chat_id: return
+        if not text or not self.fc_current_chat: return
         
-        username = self.fc_data.get("username", "Me")
-        
-        # Check if sending to Contact (IP) or Group (IP:Port)
-        target = self.fc_current_chat_id
-        
-        try:
-            if ":" in target: # Group (IP:Port)
-                ip, port = target.split(":")
-                port = int(port)
-                
-                # Connect and send
-                client = Client(ip, port)
-                msg_data = {"type": "chat", "username": username, "message": text}
-                client.send(json.dumps(msg_data))
-                client.close() # Short-lived connection for now
-                
-            else: # Contact (IP) - Assume default port 9000 or find active connection
-                ip = target
-                # Try to find active connection in our server
-                sent = False
-                if self.fc_server:
-                    for sock, addr in self.fc_server.clients:
-                        if addr[0] == ip:
-                            msg_data = {"type": "chat", "username": username, "message": text}
-                            sock.send(json.dumps(msg_data).encode())
-                            sent = True
-                            break
-                
-                if not sent:
-                    # Try to connect to them (they might be hosting)
-                    try:
-                        client = Client(ip, 9000)
-                        msg_data = {"type": "chat", "username": username, "message": text}
-                        client.send(json.dumps(msg_data))
-                        client.close()
-                    except:
-                        self.fc_log_system("Could not send message. User offline?")
-                        return
-
-            self.fc_add_to_history(target, f"You: {text}")
-            self.fc_refresh_chat()
-            self.fc_msg_entry.delete(0, tk.END)
+        if not self.fc_connected:
+            self.fc_log_system("Not connected to server.")
+            return
             
-        except Exception as e:
-            self.fc_log_system(f"Error sending: {e}")
+        target = self.fc_current_chat
+        self.fc_send_json({"type": "chat", "target": target, "message": text})
+        
+        self.fc_add_to_history(target, f"You: {text}")
+        self.fc_refresh_chat()
+        self.fc_msg_entry.delete(0, tk.END)
+
+    def fc_send_json(self, data):
+        try:
+            self.fc_socket.send(json.dumps(data).encode('utf-8'))
+        except:
+            pass
 
     def fc_log_system(self, msg):
-        if self.fc_current_chat_id:
-            self.fc_add_to_history(self.fc_current_chat_id, f"[System]: {msg}")
+        # Log to current chat or general log
+        if self.fc_current_chat:
+            self.fc_add_to_history(self.fc_current_chat, f"[System]: {msg}")
             self.fc_refresh_chat()
-
-    # Overlay Helper
-    def show_input_overlay(self, title, prompt, callback):
-        """Show a non-popup input overlay"""
-        overlay = tk.Frame(self.root, bg="#1e293b", relief="raised", borderwidth=2)
-        overlay.place(relx=0.5, rely=0.5, anchor=tk.CENTER, width=300, height=150)
-        
-        ttk.Label(overlay, text=title, font=("Segoe UI", 11, "bold"), background="#1e293b", foreground="white").pack(pady=10)
-        ttk.Label(overlay, text=prompt, background="#1e293b", foreground="#cbd5e1").pack()
-        
-        entry = ttk.Entry(overlay)
-        entry.pack(pady=5, padx=20, fill=tk.X)
-        entry.focus()
-        
-        btn_frame = tk.Frame(overlay, bg="#1e293b")
-        btn_frame.pack(pady=10)
-        
-        def on_ok():
-            val = entry.get().strip()
-            overlay.destroy()
-            callback(val)
-            
-        def on_cancel():
-            overlay.destroy()
-            
-        ttk.Button(btn_frame, text="OK", command=on_ok).pack(side=tk.LEFT, padx=5)
-        ttk.Button(btn_frame, text="Cancel", command=on_cancel).pack(side=tk.LEFT, padx=5)
-        
-        entry.bind("<Return>", lambda e: on_ok())
+        else:
+            # Maybe show in status or a popup?
+            pass
 
     def auto_start_services(self):
         """Auto-start services"""
-        # Auto-start Fast Connect server if username exists
-        if self.fc_data.get("username"):
-            self.root.after(1000, self.fc_toggle_online)
+        # Auto-connect if username and IP exist?
+        pass
+
 
 if __name__ == "__main__":
     root = tk.Tk()
