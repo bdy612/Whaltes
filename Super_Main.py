@@ -3060,11 +3060,11 @@ class EncryptionApp:
         
         # Left Panel (Sidebar)
         left_panel = ttk.Frame(paned, width=250)
-        paned.add(left_panel, weight=1)
+        paned.add(left_panel)
         
         # Right Panel (Chat)
         right_panel = ttk.Frame(paned)
-        paned.add(right_panel, weight=3)
+        paned.add(right_panel)
         
         # === Left Panel Content ===
         
