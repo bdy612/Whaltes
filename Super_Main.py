@@ -5,23 +5,30 @@ Super Main File - All modules combined
 """
 
 import tkinter as tk
-from tkinter import ttk, messagebox, scrolledtext
+from tkinter import ttk, messagebox, scrolledtext, simpledialog, filedialog
 import socket
+from threading import Thread
 import json
 import os
 import base64
 import hashlib
 import itertools
-import logging
-import threading
 import time
-import string
 import random
+import string
+import logging
+import shutil
+import zipfile
+import tempfile
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 from Crypto.Random import get_random_bytes
 
-# ==================== hash.py ====================
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# ==================== Hashing Module ====================
 
 class Hashing:
     def __init__(self, data):
@@ -91,7 +98,10 @@ class Hashing:
                     return candidate
         return None
 
-# ==================== main.py ====================
+# ==================== Encryption Module ====================
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+from Crypto.Random import get_random_bytes
 
 class Encription:
     # Encryption type constants
@@ -469,7 +479,7 @@ class Encription:
         
         return output_path
 
-# ==================== server.py ====================
+# ==================== Server Module ====================
 
 class Server:
     def __init__(self, host, port):
@@ -483,7 +493,7 @@ class Server:
         self.log = []
         
         # Start the listener in a separate thread
-        self.listener_thread = threading.Thread(target=self.listen_for_clients)
+        self.listener_thread = Thread(target=self.listen_for_clients)
         self.listener_thread.daemon = True
         self.listener_thread.start()
     
@@ -500,7 +510,7 @@ class Server:
                 self.clients.append((client_socket, client_address))
                 
                 # Start a thread to handle this client
-                client_thread = threading.Thread(target=self.handle_client, 
+                client_thread = Thread(target=self.handle_client, 
                                                args=(client_socket, client_address))
                 client_thread.daemon = True
                 client_thread.start()
@@ -647,10 +657,10 @@ class Server:
         except:
             pass
 
-# ==================== client.py ====================
+# ==================== Client Module ====================
 
 # Create a logger
-logger = logging.getLogger(__name__)
+
 
 class Client:
     def __init__(self, server_host, server_port):
@@ -662,7 +672,7 @@ class Client:
         logger.info(f"Connected to server at {server_host}:{server_port}")
         
         # Start listening thread
-        self.listen_thread = threading.Thread(target=self.listen_for_messages)
+        self.listen_thread = Thread(target=self.listen_for_messages)
         self.listen_thread.daemon = True
         self.listen_thread.start()
     
@@ -747,7 +757,7 @@ class Client:
         self.running = False
         self.client_socket.close()
 
-# ==================== index.py ====================
+# ==================== GUI Application ====================
 
 class EncryptionApp:
     def __init__(self, root):
@@ -2275,9 +2285,7 @@ class EncryptionApp:
                 
                 self.root.after(0, lambda: self.display_crack_result(result, elapsed))
             
-            import threading
-            import time
-            threading.Thread(target=crack_thread, daemon=True).start()
+            Thread(target=crack_thread, daemon=True).start()
             
         except Exception as e:
             messagebox.showerror("Error", f"Cracking failed: {str(e)}")
@@ -2997,487 +3005,440 @@ class EncryptionApp:
                 self.update_server_log(error_msg)
     
     # Fast Connect Helper Methods
-    def load_saved_usernames(self):
-        """Load saved usernames from file"""
+    # Fast Connect Helper Methods
+    def load_fc_data(self):
+        """Load Fast Connect data (username, contacts, groups)"""
         try:
-            usernames_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fc_usernames.json")
-            if os.path.exists(usernames_file):
-                with open(usernames_file, 'r') as f:
-                    return json.load(f)
-            return []
+            data_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fc_data.json")
+            if os.path.exists(data_file):
+                with open(data_file, 'r') as f:
+                    self.fc_data = json.load(f)
+            else:
+                self.fc_data = {
+                    "username": "",
+                    "contacts": {},  # {ip: name}
+                    "groups": {}     # {id: name}
+                }
         except:
-            return []
-    
-    def save_username(self, username):
-        """Save username to file"""
+            self.fc_data = {"username": "", "contacts": {}, "groups": {}}
+
+    def save_fc_data(self):
+        """Save Fast Connect data"""
         try:
-            if username not in self.fc_saved_usernames:
-                self.fc_saved_usernames.append(username)
-                usernames_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fc_usernames.json")
-                with open(usernames_file, 'w') as f:
-                    json.dump(self.fc_saved_usernames, f)
-                self.fc_username_combo['values'] = self.fc_saved_usernames
+            data_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fc_data.json")
+            with open(data_file, 'w') as f:
+                json.dump(self.fc_data, f, indent=4)
         except Exception as e:
-            print(f"Error saving username: {e}")
-    
-    def fc_create_new_username(self):
-        """Create a new username"""
-        from tkinter import simpledialog
-        username = simpledialog.askstring("New Username", "Enter your new username:")
-        
-        if username:
-            username = username.strip()
-            if username:
-                self.save_username(username)
-                self.fc_username_var.set(username)
-                messagebox.showinfo("Success", f"Username '{username}' created and saved!")
-    
-    def fc_log_message(self, message):
-        """Add message to Fast Connect chat log"""
-        self.fc_chat_log.config(state="normal")
-        self.fc_chat_log.insert(tk.END, message + "\n")
-        self.fc_chat_log.see(tk.END)
-        self.fc_chat_log.config(state="disabled")
-    
+            print(f"Error saving data: {e}")
+
+    def get_local_ip(self):
+        """Get local IP address"""
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            ip = s.getsockname()[0]
+            s.close()
+            return ip
+        except:
+            return "127.0.0.1"
+
     # Fast Connect Tab
     def setup_fast_connect_tab(self):
-        """Setup the Fast Connect tab with auto-server and username management"""
-        from tkinter import simpledialog
+        """Setup the Fast Connect tab with new UI"""
         
-        # Initialize fast connect variables
+        # Initialize variables
+        self.load_fc_data()
         self.fc_server = None
-        self.fc_client = None
-        self.fc_my_username = ""
-        self.fc_saved_usernames = self.load_saved_usernames()
-        self.fc_online_users = {}  # {username: client_address}
-        self.fc_current_chat = None  # username or group name
-        self.fc_groups = []
+        self.fc_clients = {} # {id: Client}
+        self.fc_unknown_users = [] # List of (ip, port)
+        self.fc_current_chat_id = None # IP or Group ID
+        self.fc_chat_histories = {} # {id: [messages]}
         
-        # My Username Section
-        user_frame = ttk.LabelFrame(self.fast_connect_frame, text="My Username", padding="10")
-        user_frame.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky=(tk.W, tk.E))
+        # Main Container - Split View
+        paned = tk.PanedWindow(self.fast_connect_frame, orient=tk.HORIZONTAL, bg="#0f172a")
+        paned.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
-        ttk.Label(user_frame, text="Username:").grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
-        self.fc_username_var = tk.StringVar()
-        self.fc_username_combo = ttk.Combobox(user_frame, textvariable=self.fc_username_var, width=20)
-        self.fc_username_combo['values'] = self.fc_saved_usernames
-        self.fc_username_combo.grid(row=0, column=1, sticky=tk.W, padx=5, pady=5)
+        # Left Panel (Sidebar)
+        left_panel = ttk.Frame(paned, width=250)
+        paned.add(left_panel, weight=1)
         
-        btn_frame = ttk.Frame(user_frame)
-        btn_frame.grid(row=1, column=0, columnspan=2, pady=5)
+        # Right Panel (Chat)
+        right_panel = ttk.Frame(paned)
+        paned.add(right_panel, weight=3)
         
-        ttk.Button(btn_frame, text="New Username", command=self.fc_create_new_username).pack(side=tk.LEFT, padx=2)
-        self.fc_connect_btn = ttk.Button(btn_frame, text="Connect", command=self.fc_connect)
-        self.fc_connect_btn.pack(side=tk.LEFT, padx=2)
+        # === Left Panel Content ===
         
-        self.fc_disconnect_btn = ttk.Button(btn_frame, text="Disconnect", command=self.fc_disconnect, state="disabled")
-        self.fc_disconnect_btn.pack(side=tk.LEFT, padx=2)
+        # 1. Profile Section
+        profile_frame = ttk.LabelFrame(left_panel, text="My Profile", padding="5")
+        profile_frame.pack(fill=tk.X, pady=(0, 10))
         
-        # Groups
-        group_frame = ttk.LabelFrame(self.fast_connect_frame, text="Groups", padding="10")
-        group_frame.grid(row=2, column=0, columnspan=2, padx=10, pady=10, sticky=(tk.W, tk.E))
+        ttk.Label(profile_frame, text="Username:").pack(anchor=tk.W)
+        self.fc_username_entry = ttk.Entry(profile_frame)
+        self.fc_username_entry.insert(0, self.fc_data.get("username", ""))
+        self.fc_username_entry.pack(fill=tk.X, pady=2)
+        self.fc_username_entry.bind("<FocusOut>", self.fc_save_username)
+        self.fc_username_entry.bind("<Return>", self.fc_save_username)
         
-        ttk.Label(group_frame, text="Current Group:").grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
-        self.fc_group_var = tk.StringVar(value="Global Chat")
-        self.fc_group_combo = ttk.Combobox(group_frame, textvariable=self.fc_group_var, state="readonly", width=20)
-        self.fc_group_combo['values'] = ["Global Chat"]
-        self.fc_group_combo.grid(row=0, column=1, sticky=tk.W, padx=5, pady=5)
-        self.fc_group_combo.bind('<<ComboboxSelected>>', self.fc_on_group_changed)
+        self.fc_status_lbl = ttk.Label(profile_frame, text="Status: Offline", foreground="gray")
+        self.fc_status_lbl.pack(anchor=tk.W, pady=2)
         
-        group_btn_frame = ttk.Frame(group_frame)
-        group_btn_frame.grid(row=1, column=0, columnspan=2, pady=5)
+        self.fc_connect_btn = ttk.Button(profile_frame, text="Go Online (Start Server)", command=self.fc_toggle_online)
+        self.fc_connect_btn.pack(fill=tk.X, pady=2)
         
-        self.fc_create_group_btn = ttk.Button(group_btn_frame, text="Create Group", command=self.fc_create_group, state="disabled")
-        self.fc_create_group_btn.pack(side=tk.LEFT, padx=2)
+        # 2. Contacts Section
+        contacts_frame = ttk.LabelFrame(left_panel, text="Contacts", padding="5")
+        contacts_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
         
-        self.fc_join_group_btn = ttk.Button(group_btn_frame, text="Join Group", command=self.fc_join_group, state="disabled")
-        self.fc_join_group_btn.pack(side=tk.LEFT, padx=2)
+        self.fc_contacts_list = tk.Listbox(contacts_frame, bg="#1e293b", fg="#f8fafc", borderwidth=0, highlightthickness=0)
+        self.fc_contacts_list.pack(fill=tk.BOTH, expand=True)
+        self.fc_contacts_list.bind("<<ListboxSelect>>", self.fc_on_contact_select)
         
-        self.fc_leave_group_btn = ttk.Button(group_btn_frame, text="Leave Group", command=self.fc_leave_group, state="disabled")
-        self.fc_leave_group_btn.pack(side=tk.LEFT, padx=2)
+        # 3. Unknown Users Section
+        unknown_frame = ttk.LabelFrame(left_panel, text="Unknown / Requests", padding="5")
+        unknown_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
         
-        # Messaging
-        msg_frame = ttk.LabelFrame(self.fast_connect_frame, text="Messaging", padding="10")
-        msg_frame.grid(row=3, column=0, columnspan=2, padx=10, pady=10, sticky=(tk.W, tk.E))
+        self.fc_unknown_list = tk.Listbox(unknown_frame, bg="#1e293b", fg="#f8fafc", borderwidth=0, highlightthickness=0, height=4)
+        self.fc_unknown_list.pack(fill=tk.BOTH, expand=True)
+        self.fc_unknown_list.bind("<<ListboxSelect>>", self.fc_on_unknown_select)
         
-        ttk.Label(msg_frame, text="Message:").grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
-        self.fc_message_entry = scrolledtext.ScrolledText(msg_frame, width=40, height=3)
-        self.fc_message_entry.grid(row=1, column=0, columnspan=2, padx=5, pady=5, sticky=(tk.W, tk.E))
+        btn_frame = ttk.Frame(unknown_frame)
+        btn_frame.pack(fill=tk.X)
+        self.fc_approve_btn = ttk.Button(btn_frame, text="Approve", command=self.fc_approve_user, state="disabled")
+        self.fc_approve_btn.pack(side=tk.LEFT, expand=True, fill=tk.X)
+        self.fc_decline_btn = ttk.Button(btn_frame, text="Decline", command=self.fc_decline_user, state="disabled")
+        self.fc_decline_btn.pack(side=tk.LEFT, expand=True, fill=tk.X)
         
-        self.fc_send_btn = ttk.Button(msg_frame, text="Send Message", command=self.fc_send_message, state="disabled")
-        self.fc_send_btn.grid(row=2, column=0, columnspan=2, pady=5)
+        # 4. Groups Section
+        groups_frame = ttk.LabelFrame(left_panel, text="Groups", padding="5")
+        groups_frame.pack(fill=tk.BOTH, expand=True)
         
-        # Chat log
-        log_frame = ttk.LabelFrame(self.fast_connect_frame, text="Chat", padding="10")
-        log_frame.grid(row=4, column=0, columnspan=2, padx=10, pady=10, sticky=(tk.W, tk.E, tk.N, tk.S))
+        self.fc_groups_list = tk.Listbox(groups_frame, bg="#1e293b", fg="#f8fafc", borderwidth=0, highlightthickness=0, height=4)
+        self.fc_groups_list.pack(fill=tk.BOTH, expand=True)
+        self.fc_groups_list.bind("<<ListboxSelect>>", self.fc_on_group_select)
         
-        self.fc_chat_log = scrolledtext.ScrolledText(log_frame, width=50, height=12, state="disabled")
-        self.fc_chat_log.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        grp_btn_frame = ttk.Frame(groups_frame)
+        grp_btn_frame.pack(fill=tk.X)
+        ttk.Button(grp_btn_frame, text="Create", command=self.fc_create_group).pack(side=tk.LEFT, expand=True, fill=tk.X)
+        ttk.Button(grp_btn_frame, text="Join", command=self.fc_join_group_dialog).pack(side=tk.LEFT, expand=True, fill=tk.X)
         
-        # Configure grid weights
-        self.fast_connect_frame.columnconfigure(0, weight=1)
-        self.fast_connect_frame.rowconfigure(4, weight=1)
+        # === Right Panel Content ===
+        
+        # Header
+        self.fc_chat_header = ttk.Label(right_panel, text="Select a contact or group to chat", font=("Segoe UI", 12, "bold"))
+        self.fc_chat_header.pack(fill=tk.X, pady=(0, 10))
+        
+        # Chat Log
+        self.fc_chat_log = scrolledtext.ScrolledText(right_panel, state="disabled", bg="#0f172a", fg="#f8fafc", font=("Segoe UI", 10))
+        self.fc_chat_log.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+        
+        # Input Area
+        input_frame = ttk.Frame(right_panel)
+        input_frame.pack(fill=tk.X)
+        
+        self.fc_msg_entry = ttk.Entry(input_frame)
+        self.fc_msg_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
+        self.fc_msg_entry.bind("<Return>", lambda e: self.fc_send_message())
+        
+        self.fc_send_btn = ttk.Button(input_frame, text="Send", command=self.fc_send_message, state="disabled")
+        self.fc_send_btn.pack(side=tk.RIGHT)
+        
+        # Refresh lists
+        self.fc_refresh_lists()
+
+    # === Logic ===
     
-    def fc_connect(self):
-        """Auto-connect: Start server and connect as client"""
-        username = self.fc_username_var.get().strip()
-        if not username:
-            messagebox.showwarning("Warning", "Please select or create a username first.")
-            return
-        
-        try:
-            # Start server automatically on port 9000
-            self.fc_my_username = username
-            host = self.get_local_ip()
-            port = 9000
-            
-            # Start server (starts automatically in __init__)
-            from server import Server
-            self.fc_server = Server(host, port)
-            
-            # Give server a moment to start
-            import time
-            time.sleep(0.5)
-            
-            # Connect as client to own server
-            from client import Client
-            self.fc_client = Client(host, port)
-            self.fc_client.set_message_callback(self.fc_handle_message)
-            self.fc_client.set_disconnect_callback(self.fc_handle_disconnect)
-            
-            # Announce username
-            self.fc_client.send(json.dumps({"type": "announce", "username": self.fc_my_username}))
-            
-            self.fc_log_message(f"✓ Connected as {self.fc_my_username}")
-            self.fc_log_message(f"✓ Server running on {host}:{port}")
-            self.fc_log_message(f"✓ Share this address with others to connect!")
-            
-            # Update UI
-            self.fc_username_combo.config(state="disabled")
-            self.fc_connect_btn.config(state="disabled")
-            self.fc_disconnect_btn.config(state="normal")
-            self.fc_send_btn.config(state="normal")
-            
-        except Exception as e:
-            messagebox.showerror("Error", f"Connection failed: {str(e)}")
-            if self.fc_server:
-                self.fc_server.close()
-                self.fc_server = None
-    
-    def fc_call_user(self):
-        """Call/chat with a specific user"""
-        from tkinter import simpledialog
-        username = simpledialog.askstring("Call User", "Enter username to call:")
-        
+    def fc_save_username(self, event=None):
+        username = self.fc_username_entry.get().strip()
         if username:
-            username = username.strip()
-            if username:
-                self.fc_current_chat = username
-                self.fc_log_message(f"📞 Calling {username}...")
-                # Send call request
-                self.fc_client.send(json.dumps({
-                    "type": "call_user",
-                    "from": self.fc_my_username,
-                    "to": username
-                }))
+            self.fc_data["username"] = username
+            self.save_fc_data()
     
-    def fc_send_message(self):
-        """Send message in Fast Connect"""
-        message = self.fc_message_entry.get("1.0", tk.END).strip()
-        if not message:
-            messagebox.showwarning("Warning", "Please enter a message.")
-            return
-        
-        if not self.fc_client:
-            messagebox.showwarning("Warning", "Not connected.")
-            return
-        
-        try:
-            msg_data = {
-                "type": "chat",
-                "from": self.fc_my_username,
-                "to": self.fc_current_chat,  # None for global, username for direct
-                "message": message
-            }
+    def fc_refresh_lists(self):
+        """Refresh all listboxes from data"""
+        # Contacts
+        self.fc_contacts_list.delete(0, tk.END)
+        for ip, name in self.fc_data["contacts"].items():
+            status = " (Online)" if self.fc_is_online(ip) else ""
+            self.fc_contacts_list.insert(tk.END, f"{name}{status}")
             
-            self.fc_client.send(json.dumps(msg_data))
+        # Groups
+        self.fc_groups_list.delete(0, tk.END)
+        for gid, name in self.fc_data["groups"].items():
+            self.fc_groups_list.insert(tk.END, name)
             
-            if self.fc_current_chat:
-                self.fc_log_message(f"[To {self.fc_current_chat}] You: {message}")
-            else:
-                self.fc_log_message(f"You: {message}")
-            
-            self.fc_message_entry.delete("1.0", tk.END)
-            
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to send message: {str(e)}")
-    
-    def fc_disconnect(self):
-        """Disconnect from server"""
-        if self.fc_client:
-            self.fc_client.close()
-            self.fc_client = None
-        
+        # Unknowns
+        self.fc_unknown_list.delete(0, tk.END)
+        for ip, port in self.fc_unknown_users:
+            self.fc_unknown_list.insert(tk.END, f"ID: {ip}")
+
+    def fc_is_online(self, ip):
+        # Check if we have an active connection or if they are connected to us
+        # For now, simple check if they are in our server clients
         if self.fc_server:
+            for sock, addr in self.fc_server.clients:
+                if addr[0] == ip:
+                    return True
+        return False
+
+    def fc_toggle_online(self):
+        if self.fc_server:
+            # Stop server
             self.fc_server.close()
             self.fc_server = None
-        
-        self.fc_log_message("Disconnected from server")
-        
-        # Reset state
-        self.fc_current_chat = None
-        self.fc_groups = []
-        self.fc_group_combo['values'] = ["Global Chat"]
-        self.fc_group_var.set("Global Chat")
-        
-        # Update UI
-        self.fc_username_combo.config(state="normal")
-        self.fc_connect_btn.config(state="normal")
-        self.fc_disconnect_btn.config(state="disabled")
-        self.fc_send_btn.config(state="disabled")
-    
-    def fc_handle_message(self, message):
-        """Handle incoming messages"""
-        try:
-            msg_data = json.loads(message)
-            msg_type = msg_data.get('type', '')
-            
-            if msg_type == 'chat':
-                from_user = msg_data.get('from', 'Unknown')
-                msg_text = msg_data.get('message', '')
-                to_user = msg_data.get('to')
-                
-                if to_user == self.fc_my_username:
-                    self.root.after(0, lambda: self.fc_log_message(f"[From {from_user}] {msg_text}"))
-                elif to_user is None:
-                    self.root.after(0, lambda: self.fc_log_message(f"{from_user}: {msg_text}"))
-            
-            elif msg_type == 'call_user':
-                from_user = msg_data.get('from', '')
-                self.root.after(0, lambda: self.fc_log_message(f"📞 Incoming call from {from_user}"))
-                self.fc_current_chat = from_user
-            
-        except:
-            self.root.after(0, lambda: self.fc_log_message(f"Server: {message}"))
-    
-    def fc_handle_disconnect(self, reason):
-        """Handle disconnection"""
-        self.root.after(0, lambda: self.fc_log_message(f"Disconnected: {reason}"))
-        self.root.after(0, self.fc_disconnect)
-    
-    def fc_create_group_chat(self):
-        """Create a group chat (stub)"""
-        messagebox.showinfo("Info", "Group chat feature coming soon!")
-    
-    def fc_on_user_selected(self, event):
-        """Handle user selection (stub)"""
-        pass
-    
-    def fc_on_group_changed(self, event):
-        """Handle group change (stub)"""
-        pass
-    
-    def fc_create_group(self):
-        """Create a new group"""
-        from tkinter import simpledialog
-        group_name = simpledialog.askstring("Create Group", "Enter group name:")
-        
-        if not group_name:
-            return
-        
-        group_name = group_name.strip()
-        
-        if not group_name:
-            messagebox.showwarning("Warning", "Group name cannot be empty.")
-            return
-        
-        if group_name in self.fc_groups or group_name == "Global Chat":
-            messagebox.showwarning("Warning", "Group already exists.")
-            return
-        
-        # Send group creation message
-        msg_data = {
-            "type": "create_group",
-            "group_name": group_name,
-            "creator": self.fc_username
-        }
-        
-        self.fc_client.send(json.dumps(msg_data))
-        
-        # Add to local groups
-        self.fc_groups.append(group_name)
-        self.fc_group_combo['values'] = ["Global Chat"] + self.fc_groups
-        
-        # Auto-join
-        self.fc_current_group = group_name
-        self.fc_group_var.set(group_name)
-        
-        self.fc_log_message(f"✓ Created and joined group: {group_name}")
-        self.fc_leave_group_btn.config(state="normal")
-    
-    def fc_join_group(self):
-        """Join an existing group"""
-        from tkinter import simpledialog
-        if not self.fc_groups:
-            messagebox.showinfo("Info", "No groups available. Create one first!")
-            return
-        
-        group_name = simpledialog.askstring("Join Group", f"Enter group name to join:\n\nAvailable: {', '.join(self.fc_groups)}")
-        
-        if not group_name:
-            return
-        
-        group_name = group_name.strip()
-        
-        if group_name not in self.fc_groups:
-            messagebox.showwarning("Warning", f"Group '{group_name}' does not exist.")
-            return
-        
-        # Send join message
-        msg_data = {
-            "type": "join_group",
-            "group_name": group_name,
-            "username": self.fc_username
-        }
-        
-        self.fc_client.send(json.dumps(msg_data))
-        
-        self.fc_current_group = group_name
-        self.fc_group_var.set(group_name)
-        
-        self.fc_log_message(f"✓ Joined group: {group_name}")
-        self.fc_leave_group_btn.config(state="normal")
-    
-    def fc_leave_group(self):
-        """Leave current group"""
-        if not self.fc_current_group:
-            messagebox.showinfo("Info", "You are in Global Chat.")
-            return
-        
-        # Send leave message
-        msg_data = {
-            "type": "leave_group",
-            "group_name": self.fc_current_group,
-            "username": self.fc_username
-        }
-        
-        self.fc_client.send(json.dumps(msg_data))
-        
-        self.fc_log_message(f"✓ Left group: {self.fc_current_group}")
-        
-        self.fc_current_group = None
-        self.fc_group_var.set("Global Chat")
-        self.fc_leave_group_btn.config(state="disabled")
-    
-    def fc_on_group_changed(self, event):
-        """Handle group selection change"""
-        selected = self.fc_group_var.get()
-        
-        if selected == "Global Chat":
-            if self.fc_current_group:
-                self.fc_leave_group()
+            self.fc_status_lbl.config(text="Status: Offline", foreground="gray")
+            self.fc_connect_btn.config(text="Go Online (Start Server)")
+            self.fc_log_system("Server stopped.")
         else:
-            if selected != self.fc_current_group:
-                self.fc_current_group = selected
-                msg_data = {
-                    "type": "join_group",
-                    "group_name": selected,
-                    "username": self.fc_username
-                }
-                self.fc_client.send(json.dumps(msg_data))
-                self.fc_log_message(f"✓ Switched to group: {selected}")
-                self.fc_leave_group_btn.config(state="normal")
-    
-    def fc_send_message(self):
-        """Send message in Fast Connect"""
-        message = self.fc_message_entry.get("1.0", tk.END).strip()
-        if not message:
-            messagebox.showwarning("Warning", "Please enter a message.")
-            return
-        
-        if not self.fc_client:
-            messagebox.showwarning("Warning", "Not connected to server.")
-            return
-        
-        try:
-            msg_data = {
-                "type": "chat",
-                "username": self.fc_username,
-                "message": message,
-                "group": self.fc_current_group
-            }
-            
-            self.fc_client.send(json.dumps(msg_data))
-            
-            if self.fc_current_group:
-                self.fc_log_message(f"[{self.fc_current_group}] You: {message}")
-            else:
-                self.fc_log_message(f"You: {message}")
-            
-            self.fc_message_entry.delete("1.0", tk.END)
-            
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to send message: {str(e)}")
-    
-    def fc_handle_message(self, message):
-        """Handle incoming messages"""
-        try:
+            # Start server
             try:
-                msg_data = json.loads(message)
-                msg_type = msg_data.get('type', '')
+                # Use port 9000 for Fast Connect to avoid conflict
+                self.fc_server = Server(self.get_local_ip(), 9000)
+                self.fc_server.set_message_handler(self.fc_handle_server_message)
+                self.fc_status_lbl.config(text=f"Status: Online ({self.get_local_ip()}:9000)", foreground="#10b981")
+                self.fc_connect_btn.config(text="Go Offline")
+                self.fc_log_system(f"Server started on {self.get_local_ip()}:9000")
+            except Exception as e:
+                messagebox.showerror("Error", f"Could not start server: {e}")
+
+    def fc_handle_server_message(self, client_address, message):
+        """Handle messages received by our server"""
+        ip = client_address[0]
+        
+        try:
+            data = json.loads(message)
+            msg_type = data.get("type")
+            
+            if msg_type == "chat":
+                sender_name = data.get("username", "Unknown")
+                text = data.get("message", "")
                 
-                if msg_type == 'chat':
-                    username = msg_data.get('username', 'Unknown')
-                    msg_text = msg_data.get('message', '')
-                    group = msg_data.get('group')
-                    
-                    if group:
-                        self.root.after(0, lambda: self.fc_log_message(f"[{group}] {username}: {msg_text}"))
-                    else:
-                        self.root.after(0, lambda: self.fc_log_message(f"{username}: {msg_text}"))
-                
-                elif msg_type == 'group_created':
-                    group_name = msg_data.get('group_name', '')
-                    creator = msg_data.get('creator', '')
-                    if group_name not in self.fc_groups:
-                        self.fc_groups.append(group_name)
-                        self.root.after(0, lambda: self.fc_update_group_list())
-                    self.root.after(0, lambda: self.fc_log_message(f"📢 {creator} created group: {group_name}"))
-                
-                elif msg_type == 'user_joined':
-                    username = msg_data.get('username', '')
-                    group_name = msg_data.get('group_name', '')
-                    self.root.after(0, lambda: self.fc_log_message(f"👋 {username} joined {group_name}"))
-                
-                elif msg_type == 'user_left':
-                    username = msg_data.get('username', '')
-                    group_name = msg_data.get('group_name', '')
-                    self.root.after(0, lambda: self.fc_log_message(f"👋 {username} left {group_name}"))
-                
+                # Check if known contact
+                if ip in self.fc_data["contacts"]:
+                    name = self.fc_data["contacts"][ip]
+                    self.fc_add_to_history(ip, f"{name}: {text}")
+                    if self.fc_current_chat_id == ip:
+                        self.fc_refresh_chat()
                 else:
-                    self.root.after(0, lambda: self.fc_log_message(f"Server: {message}"))
-            except:
-                self.root.after(0, lambda: self.fc_log_message(f"Server: {message}"))
-        except Exception as e:
-            self.root.after(0, lambda: self.fc_log_message(f"Error: {str(e)}"))
-    
-    def fc_update_group_list(self):
-        """Update group combobox"""
-        self.fc_group_combo['values'] = ["Global Chat"] + self.fc_groups
-    
-    def fc_handle_disconnect(self, reason):
-        """Handle disconnection"""
-        self.root.after(0, lambda: self.fc_log_message(f"Disconnected: {reason}"))
-        self.root.after(0, self.fc_disconnect)
-    
-    def fc_log_message(self, message):
-        """Add message to chat log"""
+                    # Unknown user
+                    if (ip, client_address[1]) not in self.fc_unknown_users:
+                        self.fc_unknown_users.append((ip, client_address[1]))
+                        self.root.after(0, self.fc_refresh_lists)
+                    
+                    self.fc_add_to_history(ip, f"Unknown ({ip}): {text}")
+                    
+        except:
+            pass
+
+    def fc_approve_user(self):
+        selection = self.fc_unknown_list.curselection()
+        if not selection: return
+        
+        index = selection[0]
+        ip, port = self.fc_unknown_users[index]
+        
+        # Show overlay to get name
+        self.show_input_overlay("Approve Contact", f"Enter name for {ip}:", 
+                              lambda name: self.fc_finalize_approval(ip, port, name))
+
+    def fc_finalize_approval(self, ip, port, name):
+        if name:
+            self.fc_data["contacts"][ip] = name
+            self.save_fc_data()
+            
+            # Remove from unknown
+            self.fc_unknown_users = [u for u in self.fc_unknown_users if u[0] != ip]
+            
+            self.fc_refresh_lists()
+            self.fc_log_system(f"Added {name} to contacts.")
+
+    def fc_decline_user(self):
+        selection = self.fc_unknown_list.curselection()
+        if not selection: return
+        
+        index = selection[0]
+        ip, port = self.fc_unknown_users[index]
+        
+        # Remove from list (and maybe kick from server)
+        self.fc_unknown_users.pop(index)
+        if self.fc_server:
+            self.fc_server.kick_client((ip, port))
+            
+        self.fc_refresh_lists()
+
+    def fc_create_group(self):
+        # Create a group (Host a server)
+        # In this P2P model, 'Creating a Group' just means giving your ID to others
+        # We'll generate a shareable ID
+        my_id = f"{self.get_local_ip()}:9000"
+        
+        self.show_input_overlay("Create Group", "Enter Group Name:", 
+                              lambda name: self.fc_finalize_group_create(name, my_id))
+
+    def fc_finalize_group_create(self, name, my_id):
+        if name:
+            # We add it to our groups list as "My Group"
+            self.fc_data["groups"][my_id] = f"{name} (Host)"
+            self.save_fc_data()
+            self.fc_refresh_lists()
+            
+            # Copy ID to clipboard
+            self.root.clipboard_clear()
+            self.root.clipboard_append(my_id)
+            messagebox.showinfo("Group Created", f"Group ID copied to clipboard:\n{my_id}\n\nShare this ID with others to join.")
+
+    def fc_join_group_dialog(self):
+        self.show_input_overlay("Join Group", "Enter Group ID (IP:Port):", self.fc_finalize_join)
+
+    def fc_finalize_join(self, group_id):
+        if group_id:
+            # Ask for name
+            self.show_input_overlay("Group Name", "Name this group:", 
+                                  lambda name: self.fc_add_group(group_id, name))
+
+    def fc_add_group(self, group_id, name):
+        if name:
+            self.fc_data["groups"][group_id] = name
+            self.save_fc_data()
+            self.fc_refresh_lists()
+
+    def fc_on_contact_select(self, event):
+        selection = self.fc_contacts_list.curselection()
+        if selection:
+            index = selection[0]
+            # Find IP from index (ordered same as list)
+            ip = list(self.fc_data["contacts"].keys())[index]
+            name = self.fc_data["contacts"][ip]
+            
+            self.fc_current_chat_id = ip
+            self.fc_chat_header.config(text=f"Chat with {name}")
+            self.fc_send_btn.config(state="normal")
+            self.fc_refresh_chat()
+
+    def fc_on_group_select(self, event):
+        selection = self.fc_groups_list.curselection()
+        if selection:
+            index = selection[0]
+            gid = list(self.fc_data["groups"].keys())[index]
+            name = self.fc_data["groups"][gid]
+            
+            self.fc_current_chat_id = gid
+            self.fc_chat_header.config(text=f"Group: {name}")
+            self.fc_send_btn.config(state="normal")
+            self.fc_refresh_chat()
+
+    def fc_on_unknown_select(self, event):
+        self.fc_approve_btn.config(state="normal")
+        self.fc_decline_btn.config(state="normal")
+
+    def fc_refresh_chat(self):
         self.fc_chat_log.config(state="normal")
-        self.fc_chat_log.insert(tk.END, message + "\n")
+        self.fc_chat_log.delete("1.0", tk.END)
+        
+        if self.fc_current_chat_id in self.fc_chat_histories:
+            for msg in self.fc_chat_histories[self.fc_current_chat_id]:
+                self.fc_chat_log.insert(tk.END, msg + "\n")
+        
         self.fc_chat_log.see(tk.END)
         self.fc_chat_log.config(state="disabled")
+
+    def fc_add_to_history(self, chat_id, message):
+        if chat_id not in self.fc_chat_histories:
+            self.fc_chat_histories[chat_id] = []
+        self.fc_chat_histories[chat_id].append(message)
+
+    def fc_send_message(self):
+        text = self.fc_msg_entry.get().strip()
+        if not text or not self.fc_current_chat_id: return
+        
+        username = self.fc_data.get("username", "Me")
+        
+        # Check if sending to Contact (IP) or Group (IP:Port)
+        target = self.fc_current_chat_id
+        
+        try:
+            if ":" in target: # Group (IP:Port)
+                ip, port = target.split(":")
+                port = int(port)
+                
+                # Connect and send
+                client = Client(ip, port)
+                msg_data = {"type": "chat", "username": username, "message": text}
+                client.send(json.dumps(msg_data))
+                client.close() # Short-lived connection for now
+                
+            else: # Contact (IP) - Assume default port 9000 or find active connection
+                ip = target
+                # Try to find active connection in our server
+                sent = False
+                if self.fc_server:
+                    for sock, addr in self.fc_server.clients:
+                        if addr[0] == ip:
+                            msg_data = {"type": "chat", "username": username, "message": text}
+                            sock.send(json.dumps(msg_data).encode())
+                            sent = True
+                            break
+                
+                if not sent:
+                    # Try to connect to them (they might be hosting)
+                    try:
+                        client = Client(ip, 9000)
+                        msg_data = {"type": "chat", "username": username, "message": text}
+                        client.send(json.dumps(msg_data))
+                        client.close()
+                    except:
+                        self.fc_log_system("Could not send message. User offline?")
+                        return
+
+            self.fc_add_to_history(target, f"You: {text}")
+            self.fc_refresh_chat()
+            self.fc_msg_entry.delete(0, tk.END)
+            
+        except Exception as e:
+            self.fc_log_system(f"Error sending: {e}")
+
+    def fc_log_system(self, msg):
+        if self.fc_current_chat_id:
+            self.fc_add_to_history(self.fc_current_chat_id, f"[System]: {msg}")
+            self.fc_refresh_chat()
+
+    # Overlay Helper
+    def show_input_overlay(self, title, prompt, callback):
+        """Show a non-popup input overlay"""
+        overlay = tk.Frame(self.root, bg="#1e293b", relief="raised", borderwidth=2)
+        overlay.place(relx=0.5, rely=0.5, anchor=tk.CENTER, width=300, height=150)
+        
+        ttk.Label(overlay, text=title, font=("Segoe UI", 11, "bold"), background="#1e293b", foreground="white").pack(pady=10)
+        ttk.Label(overlay, text=prompt, background="#1e293b", foreground="#cbd5e1").pack()
+        
+        entry = ttk.Entry(overlay)
+        entry.pack(pady=5, padx=20, fill=tk.X)
+        entry.focus()
+        
+        btn_frame = tk.Frame(overlay, bg="#1e293b")
+        btn_frame.pack(pady=10)
+        
+        def on_ok():
+            val = entry.get().strip()
+            overlay.destroy()
+            callback(val)
+            
+        def on_cancel():
+            overlay.destroy()
+            
+        ttk.Button(btn_frame, text="OK", command=on_ok).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="Cancel", command=on_cancel).pack(side=tk.LEFT, padx=5)
+        
+        entry.bind("<Return>", lambda e: on_ok())
+
+    def auto_start_services(self):
+        """Auto-start services"""
+        # Auto-start Fast Connect server if username exists
+        if self.fc_data.get("username"):
+            self.root.after(1000, self.fc_toggle_online)
 
 if __name__ == "__main__":
     root = tk.Tk()
     app = EncryptionApp(root)
+    root.after(1000, app.auto_start_services)
     root.mainloop()
+
