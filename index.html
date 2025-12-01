@@ -21,7 +21,7 @@
                     <a href="download.html">Download</a>
                     <a href="points.html">Points</a>
                 </div>
-                <a href="download.html" class="cta-button">Get Started</a>
+                <a href="login.html" class="cta-button" id="navAuthButton">Sign In</a>
             </nav>
         </div>
     </header>
@@ -64,7 +64,8 @@
                     <div class="feature-card">
                         <div class="feature-icon"><i class="fas fa-server"></i></div>
                         <h3>Centralized Chat</h3>
-                        <p>Stay connected with our new Central Server. Send offline messages, add friends by username, and never miss a beat.
+                        <p>Stay connected with our new Central Server. Send offline messages, add friends by username,
+                            and never miss a beat.
                         </p>
                     </div>
                     <div class="feature-card">
@@ -84,7 +85,16 @@
         </div>
     </footer>
 
+    <script src="auth.js"></script>
     <script src="script.js"></script>
+    <script>
+        // Update nav button based on auth status
+        if (checkAuth()) {
+            const user = getCurrentUser();
+            document.getElementById('navAuthButton').href = 'account.html';
+            document.getElementById('navAuthButton').innerHTML = '<i class="fas fa-user"></i> Account';
+        }
+    </script>
 </body>
 
 </html>
