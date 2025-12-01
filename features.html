@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Whlates - Secure Your World</title>
+    <title>Features - Whlates</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -16,8 +16,8 @@
             <nav>
                 <a href="index.html" class="logo">Whlates</a>
                 <div class="nav-links">
-                    <a href="index.html" class="active">Home</a>
-                    <a href="features.html">Features</a>
+                    <a href="index.html">Home</a>
+                    <a href="features.html" class="active">Features</a>
                     <a href="download.html">Download</a>
                     <a href="points.html">Points</a>
                 </div>
@@ -27,53 +27,46 @@
     </header>
 
     <main>
-        <section class="hero">
-            <div class="container">
-                <div class="hero-content">
-                    <div class="hero-badges">
-                        <span class="badge">v2.7 Alpha - 2025 Edition</span>
-                        <span class="badge">New Central Server</span>
-                    </div>
-                    <h1>Secure Communication Made Simple.</h1>
-                    <p>The all-in-one encryption suite. Encrypt files, chat securely with friends, crack hashes, and
-                        manage your keys with ease.</p>
-                    <div class="hero-buttons">
-                        <a href="download.html" class="cta-button"><i class="fas fa-download"></i> Download Now</a>
-                        <a href="features.html" class="secondary-button">Explore Features</a>
-                    </div>
-                </div>
-            </div>
-        </section>
+        <section class="container" style="padding-top: 120px;">
+            <h1>Powerful Features</h1>
+            <p>Everything you need to secure your digital life. Version 2.7 Alpha - 2025 Edition.</p>
 
-        <section class="features">
-            <div class="container">
-                <h2>Why Whlates?</h2>
-                <div class="features-grid">
-                    <div class="feature-card">
-                        <div class="feature-icon"><i class="fas fa-lock"></i></div>
-                        <h3>Advanced Encryption</h3>
-                        <p>Secure your files and text with AES-256, Vigenère, and Caesar ciphers. Randomize parameters
-                            for maximum security.</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon"><i class="fas fa-key"></i></div>
-                        <h3>Key Management</h3>
-                        <p>Save, tag, and organize your encryption keys. Never lose access to your encrypted data again.
-                        </p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon"><i class="fas fa-server"></i></div>
-                        <h3>Centralized Chat</h3>
-                        <p>Stay connected with our new Central Server. Send offline messages, add friends by username,
-                            and never miss a beat.
-                        </p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon"><i class="fas fa-hashtag"></i></div>
-                        <h3>Hashing & Cracking</h3>
-                        <p>Verify file integrity with MD5/SHA hashes, or test password strength with the built-in
-                            cracker.</p>
-                    </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-file-shield"></i></div>
+                    <h3>Universal File Decryption</h3>
+                    <p>Decrypt any file type (MP3, MP4, PDF, etc.) effortlessly. Our smart system detects encryption
+                        parameters automatically or lets you load a saved key.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-tags"></i></div>
+                    <h3>Smart Key Manager</h3>
+                    <p>Organize your keys with custom names and tags. Edit, delete, and search your keys to keep your
+                        security organized.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-network-wired"></i></div>
+                    <h3>Central Server</h3>
+                    <p>Connect to a central hub for reliable messaging. Supports offline messages so you never miss a
+                        text.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-user-plus"></i></div>
+                    <h3>Easy Friend Management</h3>
+                    <p>Add friends by username, manage your contacts list, and start chatting instantly without complex
+                        IP setups.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-random"></i></div>
+                    <h3>Custom Randomization</h3>
+                    <p>Generate strong keys and passwords with customizable ranges and character sets. Never use a weak
+                        password again.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-laptop-code"></i></div>
+                    <h3>Developer Friendly</h3>
+                    <p>Built with Python, open for extension. Includes hashing tools and a brute-force cracker for
+                        testing security.</p>
                 </div>
             </div>
         </section>
@@ -86,7 +79,6 @@
     </footer>
 
     <script src="auth.js"></script>
-    <script src="script.js"></script>
     <script>
         // Update nav button based on auth status
         if (checkAuth()) {
