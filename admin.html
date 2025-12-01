@@ -224,7 +224,7 @@
             <!-- Add New User -->
             <div class="admin-card">
                 <h3><i class="fas fa-user-plus"></i> Add New User</h3>
-                <input type="text" id="newUserID" class="admin-input" placeholder="User ID">
+                <input type="text" id="newUserID" class="admin-input" placeholder="Points ID">
                 <input type="number" id="newUserPoints" class="admin-input" placeholder="Initial Points" value="0">
                 <button onclick="addNewUser()" class="admin-button btn-success">
                     <i class="fas fa-plus"></i> Add User
@@ -234,7 +234,7 @@
             <!-- Modify Points -->
             <div class="admin-card">
                 <h3><i class="fas fa-edit"></i> Modify User Points</h3>
-                <input type="text" id="modifyUserID" class="admin-input" placeholder="User ID">
+                <input type="text" id="modifyUserID" class="admin-input" placeholder="Points ID">
                 <input type="number" id="modifyPoints" class="admin-input" placeholder="Points Amount" value="0">
                 <button onclick="modifyPoints('add')" class="admin-button btn-success">
                     <i class="fas fa-plus"></i> Add Points
@@ -250,43 +250,300 @@
             <!-- Test Points Checker -->
             <div class="admin-card">
                 <h3><i class="fas fa-vial"></i> Test Points Checker</h3>
-                <input type="text" id="testID" class="admin-input" placeholder="Enter ID to test">
+                <input type="text" id="testID" class="admin-input" placeholder="Enter Points ID to test">
                 <button onclick="testPointsChecker()" class="admin-button">
-                    <i class="fas fa-search"></i> Test Lookup
-                </button>
-                <div id="testResult" style="margin-top: 1rem;"></div>
-            </div>
+                    margin: 0.5rem 0;
+                    background: rgba(15, 23, 42, 0.8);
+                    border: 1px solid rgba(59, 130, 246, 0.3);
+                    border-radius: 6px;
+                    color: white;
+                    font-size: 1rem;
+                    }
 
-            <!-- User Management Table -->
-            <div class="admin-card">
-                <h3><i class="fas fa-table"></i> User Management</h3>
-                <table class="user-table">
-                    <thead>
-                        <tr>
-                            <th>User ID</th>
-                            <th>Points</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="userTableBody">
-                        <!-- Populated by JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </main>
+                    .admin-button {
+                    padding: 0.75rem 1.5rem;
+                    margin: 0.5rem 0.5rem 0.5rem 0;
+                    background: #3b82f6;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-weight: 600;
+                    transition: all 0.3s;
+                    }
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2025 Whlates. Admin Panel.</p>
-        </div>
-    </footer>
+                    .admin-button:hover {
+                    background: #2563eb;
+                    transform: translateY(-2px);
+                    }
 
-    <script src="admin.js"></script>
-    <script>
-        // Initialize admin panel on load
-        window.addEventListener('DOMContentLoaded', initAdmin);
-    </script>
-</body>
+                    .btn-success {
+                    background: #10b981;
+                    }
+
+                    .btn-success:hover {
+                    background: #059669;
+                    }
+
+                    .btn-danger {
+                    background: #ef4444;
+                    }
+
+                    .btn-danger:hover {
+                    background: #dc2626;
+                    }
+
+                    .btn-warning {
+                    background: #f59e0b;
+                    }
+
+                    .btn-warning:hover {
+                    background: #d97706;
+                    }
+
+                    .user-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 1rem;
+                    }
+
+                    .user-table th,
+                    .user-table td {
+                    padding: 1rem;
+                    text-align: left;
+                    border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+                    }
+
+                    .user-table th {
+                    background: rgba(59, 130, 246, 0.1);
+                    color: #3b82f6;
+                    font-weight: 600;
+                    }
+
+                    .user-table tr:hover {
+                    background: rgba(59, 130, 246, 0.05);
+                    }
+
+                    .btn-edit,
+                    .btn-delete {
+                    padding: 0.5rem 1rem;
+                    margin: 0 0.25rem;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 0.875rem;
+                    font-weight: 600;
+                    }
+
+                    .btn-edit {
+                    background: #3b82f6;
+                    color: white;
+                    }
+
+                    .btn-delete {
+                    background: #ef4444;
+                    color: white;
+                    }
+
+                    .quick-links {
+                    display: flex;
+                    gap: 1rem;
+                    flex-wrap: wrap;
+                    margin-bottom: 2rem;
+                    }
+
+                    .quick-link {
+                    padding: 0.75rem 1.5rem;
+                    background: rgba(59, 130, 246, 0.1);
+                    border: 1px solid rgba(59, 130, 246, 0.3);
+                    border-radius: 6px;
+                    color: #3b82f6;
+                    text-decoration: none;
+                    font-weight: 600;
+                    transition: all 0.3s;
+                    }
+
+                    .quick-link:hover {
+                    background: rgba(59, 130, 246, 0.2);
+                    transform: translateY(-2px);
+                    }
+                    </style>
+                    </head>
+
+                    <body>
+                        <header>
+                            <div class="container">
+                                <nav>
+                                    <a href="index.html" class="logo">Whlates Admin</a>
+                                    <div class="nav-links">
+                                        <a href="index.html">Home</a>
+                                        <a href="points.html">Points</a>
+                                        <a href="admin.html" class="active">Admin</a>
+                                    </div>
+                                </nav>
+                            </div>
+                        </header>
+
+                        <main>
+                            <div class="admin-container">
+                                <div class="admin-header">
+                                    <h1><i class="fas fa-shield-alt"></i> Admin Control Panel</h1>
+                                    <p>Manage users, points, and test system functionality</p>
+                                </div>
+
+                                <!-- Quick Links -->
+                                <div class="quick-links">
+                                    <a href="index.html" class="quick-link"><i class="fas fa-home"></i> Home</a>
+                                    <a href="features.html" class="quick-link"><i class="fas fa-star"></i> Features</a>
+                                    <a href="download.html" class="quick-link"><i class="fas fa-download"></i>
+                                        Download</a>
+                                    <a href="points.html" class="quick-link"><i class="fas fa-coins"></i> Points</a>
+                                    <a href="#" onclick="downloadJSON()" class="quick-link"><i class="fas fa-save"></i>
+                                        Save Data</a>
+                                </div>
+
+                                <!-- Statistics -->
+                                <div class="admin-grid">
+                                    <div class="admin-card stat-card">
+                                        <h3><i class="fas fa-users"></i> Total Users</h3>
+                                        <div class="stat-number" id="totalUsers">0</div>
+                                    </div>
+                                    <div class="admin-card stat-card">
+                                        <h3><i class="fas fa-coins"></i> Total Points</h3>
+                                        <div class="stat-number" id="totalPoints">0</div>
+                                    </div>
+                                    <div class="admin-card stat-card">
+                                        <h3><i class="fas fa-crown"></i> Pro Users</h3>
+                                        <div class="stat-number" id="proUsers">0</div>
+                                    </div>
+                                </div>
+
+                                <!-- Add New User -->
+                                <div class="admin-card">
+                                    <h3><i class="fas fa-user-plus"></i> Add New User</h3>
+                                    <input type="text" id="newUserID" class="admin-input" placeholder="Points ID">
+                                    <input type="number" id="newUserPoints" class="admin-input"
+                                        placeholder="Initial Points" value="0">
+                                    <button onclick="addNewUser()" class="admin-button btn-success">
+                                        <i class="fas fa-plus"></i> Add User
+                                    </button>
+                                </div>
+
+                                <!-- Modify Points -->
+                                <div class="admin-card">
+                                    <h3><i class="fas fa-edit"></i> Modify User Points</h3>
+                                    <input type="text" id="modifyUserID" class="admin-input" placeholder="Points ID">
+                                    <input type="number" id="modifyPoints" class="admin-input"
+                                        placeholder="Points Amount" value="0">
+                                    <button onclick="modifyPoints('add')" class="admin-button btn-success">
+                                        <i class="fas fa-plus"></i> Add Points
+                                    </button>
+                                    <button onclick="modifyPoints('deduct')" class="admin-button btn-danger">
+                                        <i class="fas fa-minus"></i> Deduct Points
+                                    </button>
+                                    <button onclick="modifyPoints('set')" class="admin-button btn-warning">
+                                        <i class="fas fa-equals"></i> Set Points
+                                    </button>
+                                </div>
+
+                                <!-- Test Points Checker -->
+                                <div class="admin-card">
+                                    <h3><i class="fas fa-vial"></i> Test Points Checker</h3>
+                                    <input type="text" id="testID" class="admin-input"
+                                        placeholder="Enter Points ID to test">
+                                    <button onclick="testPointsChecker()" class="admin-button">
+                                        <i class="fas fa-search"></i> Test Lookup
+                                    </button>
+                                    <div id="testResult" style="margin-top: 1rem;"></div>
+                                </div>
+
+                                <!-- User Management Table -->
+                                <div class="admin-card">
+                                    <h3><i class="fas fa-table"></i> Points ID Management</h3>
+                                    <table class="user-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Points ID</th>
+                                                <th>Points</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="userTableBody">
+                                            <!-- Populated by JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Account Management Section -->
+                                <div style="margin-top: 4rem;">
+                                    <h2 style="color: #3b82f6; text-align: center; margin-bottom: 2rem;">
+                                        <i class="fas fa-users-cog"></i> User Accounts Management
+                                    </h2>
+
+                                    <!-- Account Statistics -->
+                                    <div class="admin-grid">
+                                        <div class="admin-card stat-card">
+                                            <h3><i class="fas fa-user-friends"></i> Total Accounts</h3>
+                                            <div class="stat-number" id="totalAccounts">0</div>
+                                        </div>
+                                        <div class="admin-card stat-card">
+                                            <h3><i class="fas fa-coins"></i> Total Account Points</h3>
+                                            <div class="stat-number" id="totalAccountPoints">0</div>
+                                        </div>
+                                        <div class="admin-card stat-card">
+                                            <h3><i class="fas fa-crown"></i> Pro Accounts</h3>
+                                            <div class="stat-number" id="proAccounts">0</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Add New Account -->
+                                    <div class="admin-card">
+                                        <h3><i class="fas fa-user-plus"></i> Add New Account</h3>
+                                        <input type="text" id="newAccountUsername" class="admin-input"
+                                            placeholder="Username">
+                                        <input type="email" id="newAccountEmail" class="admin-input"
+                                            placeholder="Email">
+                                        <input type="password" id="newAccountPassword" class="admin-input"
+                                            placeholder="Password">
+                                        <input type="number" id="newAccountPoints" class="admin-input"
+                                            placeholder="Initial Points" value="0" min="0">
+                                        <button onclick="addNewAccount()" class="admin-button btn-success">
+                                            <i class="fas fa-plus"></i> Add Account
+                                        </button>
+                                    </div>
+
+                                    <!-- Accounts Table -->
+                                    <div class="admin-card">
+                                        <h3><i class="fas fa-table"></i> Accounts Management</h3>
+                                        <table class="user-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Username</th>
+                                                    <th>Email</th>
+                                                    <th>Points</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="accountsTableBody">
+                                                <!-- Populated by JavaScript -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </main>
+
+                        <footer>
+                            <div class="container">
+                                <p>&copy; 2025 Whlates. Admin Panel.</p>
+                            </div>
+                        </footer>
+
+                        <script src="admin.js"></script>
+                        <script>
+                            // Initialize admin panel on load
+                            window.addEventListener('DOMContentLoaded', initAdmin);
+                        </script>
+                    </body>
 
 </html>
