@@ -1,8 +1,9 @@
 // Admin Panel JavaScript
 let adminPointsData = [];
+let adminAccountsData = [];
 
 // Admin password (in production, this should be handled server-side)
-const ADMIN_PASSWORD = "whlates2025admin";
+const ADMIN_PASSWORD = "Boody@612#Ahmed_142";
 
 // Load points data
 async function adminLoadData() {
@@ -12,11 +13,23 @@ async function adminLoadData() {
         refreshUserTable();
     } catch (error) {
         console.error('Error loading data:', error);
-        showNotification('Error loading data', 'error');
+        showNotification('Error loading points data', 'error');
     }
 }
 
-// Refresh the user table
+// Load accounts data
+async function adminLoadAccounts() {
+    try {
+        const response = await fetch('accounts.json');
+        adminAccountsData = await response.json();
+        refreshAccountsTable();
+    } catch (error) {
+        console.error('Error loading accounts:', error);
+        showNotification('Error loading accounts data', 'error');
+    }
+}
+
+// Refresh the points user table
 function refreshUserTable() {
     const tbody = document.getElementById('userTableBody');
     tbody.innerHTML = '';
@@ -37,6 +50,30 @@ function refreshUserTable() {
     updateStats();
 }
 
+// Refresh the accounts table
+function refreshAccountsTable() {
+    const tbody = document.getElementById('accountsTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+
+    adminAccountsData.forEach((account, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${account.username}</td>
+            <td>${account.email}</td>
+            <td>${account.points.toLocaleString()}</td>
+            <td>
+                <button onclick="editAccount(${index})" class="btn-edit">Edit</button>
+                <button onclick="deleteAccount(${index})" class="btn-delete">Delete</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+
+    updateAccountStats();
+}
+
 // Update statistics
 function updateStats() {
     const totalUsers = adminPointsData.length;
@@ -48,7 +85,20 @@ function updateStats() {
     document.getElementById('proUsers').textContent = proUsers;
 }
 
-// Add new user
+// Update account statistics
+function updateAccountStats() {
+    const totalAccounts = adminAccountsData.length;
+    const totalAccountPoints = adminAccountsData.reduce((sum, acc) => sum + acc.points, 0);
+    const proAccounts = adminAccountsData.filter(a => a.points >= 1000).length;
+
+    if (document.getElementById('totalAccounts')) {
+        document.getElementById('totalAccounts').textContent = totalAccounts;
+        document.getElementById('totalAccountPoints').textContent = totalAccountPoints.toLocaleString();
+        document.getElementById('proAccounts').textContent = proAccounts;
+    }
+}
+
+// Add new user (Points ID system)
 function addNewUser() {
     const id = document.getElementById('newUserID').value.trim();
     const points = parseInt(document.getElementById('newUserPoints').value) || 0;
@@ -74,7 +124,44 @@ function addNewUser() {
     showNotification('User added successfully', 'success');
 }
 
-// Edit user
+// Add new account
+function addNewAccount() {
+    const username = document.getElementById('newAccountUsername').value.trim();
+    const email = document.getElementById('newAccountEmail').value.trim();
+    const password = document.getElementById('newAccountPassword').value;
+    const points = parseInt(document.getElementById('newAccountPoints').value) || 0;
+
+    if (!username || !email || !password) {
+        showNotification('Please fill all fields', 'error');
+        return;
+    }
+
+    // Check if username exists
+    if (adminAccountsData.find(a => a.username === username)) {
+        showNotification('Username already exists', 'error');
+        return;
+    }
+
+    adminAccountsData.push({
+        username: username,
+        password: password,
+        email: email,
+        points: points,
+        createdAt: new Date().toISOString()
+    });
+
+    refreshAccountsTable();
+    downloadAccountsJSON();
+
+    document.getElementById('newAccountUsername').value = '';
+    document.getElementById('newAccountEmail').value = '';
+    document.getElementById('newAccountPassword').value = '';
+    document.getElementById('newAccountPoints').value = '0';
+
+    showNotification('Account added successfully', 'success');
+}
+
+// Edit user (Points ID)
 function editUser(index) {
     const user = adminPointsData[index];
     const newPoints = prompt(`Edit points for ID ${user.ID}:`, user.Points);
@@ -92,7 +179,25 @@ function editUser(index) {
     }
 }
 
-// Delete user
+// Edit account
+function editAccount(index) {
+    const account = adminAccountsData[index];
+    const newPoints = prompt(`Edit points for ${account.username}:`, account.points);
+
+    if (newPoints !== null) {
+        const points = parseInt(newPoints);
+        if (!isNaN(points) && points >= 0) {
+            adminAccountsData[index].points = points;
+            refreshAccountsTable();
+            downloadAccountsJSON();
+            showNotification('Account updated successfully', 'success');
+        } else {
+            showNotification('Invalid points value', 'error');
+        }
+    }
+}
+
+// Delete user (Points ID)
 function deleteUser(index) {
     const user = adminPointsData[index];
     if (confirm(`Delete user ${user.ID}?`)) {
@@ -100,6 +205,17 @@ function deleteUser(index) {
         refreshUserTable();
         downloadJSON();
         showNotification('User deleted successfully', 'success');
+    }
+}
+
+// Delete account
+function deleteAccount(index) {
+    const account = adminAccountsData[index];
+    if (confirm(`Delete account ${account.username}?`)) {
+        adminAccountsData.splice(index, 1);
+        refreshAccountsTable();
+        downloadAccountsJSON();
+        showNotification('Account deleted successfully', 'success');
     }
 }
 
@@ -136,7 +252,7 @@ function modifyPoints(action) {
     showNotification(`Points ${action}ed successfully`, 'success');
 }
 
-// Download updated JSON
+// Download updated points JSON
 function downloadJSON() {
     const dataStr = JSON.stringify(adminPointsData, null, 4);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
@@ -144,6 +260,18 @@ function downloadJSON() {
     const link = document.createElement('a');
     link.href = url;
     link.download = 'points.json';
+    link.click();
+    URL.revokeObjectURL(url);
+}
+
+// Download updated accounts JSON
+function downloadAccountsJSON() {
+    const dataStr = JSON.stringify(adminAccountsData, null, 4);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'accounts.json';
     link.click();
     URL.revokeObjectURL(url);
 }
@@ -205,6 +333,7 @@ function showNotification(message, type) {
 // Initialize admin panel
 function initAdmin() {
     adminLoadData();
+    adminLoadAccounts();
 }
 
 // Add CSS animations
