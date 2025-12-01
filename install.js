@@ -137,7 +137,7 @@ Super Main File - All modules combined
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'Whlates-v2.6-2025.zip';
+    a.download = 'Whlates-v2.7-Alpha-2025.zip';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -328,6 +328,7 @@ style.textContent = `
 }
 `;
 document.head.appendChild(style);
+
 
 
 
