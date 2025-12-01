@@ -122,6 +122,7 @@ Super Main File - All modules combined
 
     // Add locally generated files
     zip.file('install.bat', generateInstallScript());
+    zip.file('run.py', generateRunScript())
     zip.file('create_shortcut.vbs', generateShortcutScript());
 
     // Generate ZIP
@@ -141,6 +142,13 @@ Super Main File - All modules combined
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+}
+
+function generateRunScript(){
+    return `import os
+if __name__ == '__main__':
+  os.system('python Central_Server.py')
+  os.system('python Super_Main.py')`
 }
 
 function generateInstallScript() {
@@ -229,9 +237,9 @@ sScriptPath = WScript.ScriptFullName
 sScriptDir = Left(sScriptPath, InStrRev(sScriptPath, "\\"))
 
 oLink.TargetPath = "pythonw.exe"
-oLink.Arguments = Chr(34) & sScriptDir & "Super_Main.py" & Chr(34)
+oLink.Arguments = Chr(34) & sScriptDir & "Run.py" & Chr(34)
 oLink.WorkingDirectory = sScriptDir
-oLink.Description = "Whlates - Secure Encryption Suite v2.6 (2025 Edition)"
+oLink.Description = "Whlates - Secure Encryption Suite v2.7 Alpha (2025 Edition)"
 oLink.IconLocation = "C:\\Windows\\System32\\shell32.dll,48"
 oLink.Save
 
@@ -320,6 +328,7 @@ style.textContent = `
 }
 `;
 document.head.appendChild(style);
+
 
 
 
