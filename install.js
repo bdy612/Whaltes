@@ -54,15 +54,15 @@ async function createAndDownloadZip() {
 
     // Files to download and combine into Super_Main.py
     const pythonFiles = [
-        'Super_Main.py',
-        'Central_Server.py'
+        'Super_Main.py'
     ];
 
     // Files to download from website repository (documentation)
     const websiteRepoFiles = [
         'Documentation.md',
         'FILE_ENCRYPTION_FEATURES.md',
-        'README.md'
+        'README.md',
+        'Central_Server.py'
     ];
 
     showNotification('Downloading files from GitHub...', 'info');
@@ -121,8 +121,8 @@ Super Main File - All modules combined
     }
 
     // Add locally generated files
+    zip.file('runner.py', generateRunnerPy());
     zip.file('install.bat', generateInstallScript());
-    zip.file('run.py', generateRunScript())
     zip.file('create_shortcut.vbs', generateShortcutScript());
 
     // Generate ZIP
@@ -144,11 +144,32 @@ Super Main File - All modules combined
     URL.revokeObjectURL(url);
 }
 
-function generateRunScript(){
-    return `import os
-if __name__ == '__main__':
-  os.system('python Central_Server.py')
-  os.system('python Super_Main.py')`
+function generateRunnerPy() {
+    return `#!/usr/bin/env python3
+"""
+Whlates - Secure Encryption Suite
+Version 2.6 - 2025 Edition
+Runner Script
+"""
+
+import tkinter as tk
+import sys
+import os
+
+# Add current directory to path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# Import from Super_Main
+from Super_Main import EncryptionApp
+
+def main():
+    root = tk.Tk()
+    app = EncryptionApp(root)
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
+`;
 }
 
 function generateInstallScript() {
@@ -237,9 +258,9 @@ sScriptPath = WScript.ScriptFullName
 sScriptDir = Left(sScriptPath, InStrRev(sScriptPath, "\\"))
 
 oLink.TargetPath = "pythonw.exe"
-oLink.Arguments = Chr(34) & sScriptDir & "Run.py" & Chr(34)
+oLink.Arguments = Chr(34) & sScriptDir & "runner.py" & Chr(34)
 oLink.WorkingDirectory = sScriptDir
-oLink.Description = "Whlates - Secure Encryption Suite v2.7 Alpha (2025 Edition)"
+oLink.Description = "Whlates - Secure Encryption Suite v2.6 (2025 Edition)"
 oLink.IconLocation = "C:\\Windows\\System32\\shell32.dll,48"
 oLink.Save
 
@@ -328,8 +349,3 @@ style.textContent = `
 }
 `;
 document.head.appendChild(style);
-
-
-
-
-
