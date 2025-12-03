@@ -1,11 +1,16 @@
 """
 Whlates - Secure Encryption Suite
-Version 2.6 - 2025 Edition
+Version 2.7 - 2025 Edition
 Super Main File - All modules combined
 """
 
 import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext, simpledialog, filedialog
+import customtkinter as ctk
+
+# Configure CustomTkinter
+ctk.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
+ctk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 import socket
 from threading import Thread
 import json
@@ -51,18 +56,21 @@ class Hashing:
             return self.hash(data, type)
     
     def hash(self, data, type="sha256"):
-        if type=="asha256":
-            return hashlib.sha256(data.encode()).hexdigest()
+        if isinstance(data, str):
+            data = data.encode()
+            
+        if type=="sha256":
+            return hashlib.sha256(data).hexdigest()
         elif type=="sha512":
-            return hashlib.sha512(data.encode()).hexdigest()
+            return hashlib.sha512(data).hexdigest()
         elif type=="md5":
-            return hashlib.md5(data.encode()).hexdigest()
+            return hashlib.md5(data).hexdigest()
         elif type=="sha1":
-            return hashlib.sha1(data.encode()).hexdigest()
+            return hashlib.sha1(data).hexdigest()
         elif type=="sha224":
-            return hashlib.sha224(data.encode()).hexdigest()
+            return hashlib.sha224(data).hexdigest()
         elif type=="sha384":
-            return hashlib.sha384(data.encode()).hexdigest()
+            return hashlib.sha384(data).hexdigest()
         else:
             return "Invalid hash type"
     
@@ -99,9 +107,6 @@ class Hashing:
         return None
 
 # ==================== Encryption Module ====================
-from Crypto.Cipher import AES
-from Crypto.Util.Padding import pad, unpad
-from Crypto.Random import get_random_bytes
 
 class Encription:
     # Encryption type constants
@@ -786,118 +791,29 @@ class EncryptionApp:
     
     def setup_styles(self):
         """Configure modern dark theme styling"""
-        style = ttk.Style()
-        style.theme_use('clam')
-        
-        # Color scheme
-        bg_dark = "#0f172a"
-        surface = "#1e293b"
-        surface_hover = "#334155"
-        primary = "#3b82f6"
-        primary_hover = "#2563eb"
-        accent = "#10b981"
-        text_primary = "#f8fafc"
-        text_secondary = "#94a3b8"
-        
-        # Configure Notebook (tabs)
-        style.configure('TNotebook', background=bg_dark, borderwidth=0)
-        style.configure('TNotebook.Tab', 
-                       background=surface,
-                       foreground=text_secondary,
-                       padding=[20, 10],
-                       font=('Segoe UI', 10, 'bold'))
-        style.map('TNotebook.Tab',
-                 background=[('selected', primary)],
-                 foreground=[('selected', text_primary)])
-        
-        # Configure Frames
-        style.configure('TFrame', background=bg_dark)
-        style.configure('TLabelframe', 
-                       background=bg_dark,
-                       foreground=text_primary,
-                       bordercolor=surface_hover,
-                       font=('Segoe UI', 10, 'bold'))
-        style.configure('TLabelframe.Label', 
-                       background=bg_dark,
-                       foreground=primary,
-                       font=('Segoe UI', 10, 'bold'))
-        
-        # Configure Labels
-        style.configure('TLabel',
-                       background=bg_dark,
-                       foreground=text_secondary,
-                       font=('Segoe UI', 10))
-        
-        # Configure Buttons
-        style.configure('TButton',
-                       background=primary,
-                       foreground=text_primary,
-                       borderwidth=0,
-                       focuscolor='none',
-                       font=('Segoe UI', 10, 'bold'),
-                       padding=[15, 8])
-        style.map('TButton',
-                 background=[('active', primary_hover), ('pressed', primary_hover)],
-                 foreground=[('active', text_primary)])
-        
-        # Configure Entry
-        style.configure('TEntry',
-                       fieldbackground=surface,
-                       foreground=text_primary,
-                       bordercolor=surface_hover,
-                       insertcolor=text_primary,
-                       font=('Segoe UI', 10))
-        
-        # Configure Combobox
-        style.configure('TCombobox',
-                       fieldbackground=surface,
-                       background=surface,
-                       foreground=text_primary,
-                       arrowcolor=text_primary,
-                       bordercolor=surface_hover,
-                       font=('Segoe UI', 10))
-        style.map('TCombobox',
-                 fieldbackground=[('readonly', surface)],
-                 selectbackground=[('readonly', primary)])
-        
-        # Configure Checkbutton
-        style.configure('TCheckbutton',
-                       background=bg_dark,
-                       foreground=text_secondary,
-                       font=('Segoe UI', 10))
-        
-        # Configure text widgets colors
-        self.root.option_add('*Text.background', surface)
-        self.root.option_add('*Text.foreground', text_primary)
-        self.root.option_add('*Text.insertBackground', text_primary)
-        self.root.option_add('*Text.font', ('Consolas', 10))
-        
-        # Configure Listbox
-        self.root.option_add('*Listbox.background', surface)
-        self.root.option_add('*Listbox.foreground', text_primary)
-        self.root.option_add('*Listbox.selectBackground', primary)
-        self.root.option_add('*Listbox.selectForeground', text_primary)
-        self.root.option_add('*Listbox.font', ('Segoe UI', 10))
+        # CustomTkinter handles styling automatically
+        pass
     
     def create_ui(self):
-        # Create notebook for tabs
-        self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        # Create tabview
+        self.tabview = ctk.CTkTabview(self.root)
+        self.tabview.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
         # Create tabs
-        self.encryption_frame = ttk.Frame(self.notebook)
-        self.hashing_frame = ttk.Frame(self.notebook)
-        self.cracking_frame = ttk.Frame(self.notebook)
-        self.server_frame = ttk.Frame(self.notebook)
-        self.client_frame = ttk.Frame(self.notebook)
-        self.fast_connect_frame = ttk.Frame(self.notebook)
+        self.tabview.add("Encryption")
+        self.tabview.add("Hashing")
+        self.tabview.add("Cracking")
+        self.tabview.add("Server")
+        self.tabview.add("Client")
+        self.tabview.add("Fast Connect")
         
-        self.notebook.add(self.encryption_frame, text="Encryption")
-        self.notebook.add(self.hashing_frame, text="Hashing")
-        self.notebook.add(self.cracking_frame, text="Cracking")
-        self.notebook.add(self.server_frame, text="Server")
-        self.notebook.add(self.client_frame, text="Client")
-        self.notebook.add(self.fast_connect_frame, text="Fast Connect")
+        # Assign frames
+        self.encryption_frame = self.tabview.tab("Encryption")
+        self.hashing_frame = self.tabview.tab("Hashing")
+        self.cracking_frame = self.tabview.tab("Cracking")
+        self.server_frame = self.tabview.tab("Server")
+        self.client_frame = self.tabview.tab("Client")
+        self.fast_connect_frame = self.tabview.tab("Fast Connect")
         
         # Set up each tab
         self.setup_encryption_tab()
@@ -909,83 +825,84 @@ class EncryptionApp:
     
     def setup_encryption_tab(self):
         # Input text area
-        ttk.Label(self.encryption_frame, text="Enter text to encrypt:").grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
-        self.input_text = scrolledtext.ScrolledText(self.encryption_frame, width=40, height=5)
+        ctk.CTkLabel(self.encryption_frame, text="Enter text to encrypt:").grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
+        self.input_text = ctk.CTkTextbox(self.encryption_frame, width=400, height=100)
         self.input_text.grid(row=1, column=0, columnspan=2, padx=10, pady=5, sticky=(tk.W, tk.E))
         
         # Encryption type selection
-        ttk.Label(self.encryption_frame, text="Encryption Method:").grid(row=2, column=0, sticky=tk.W, padx=10, pady=5)
+        ctk.CTkLabel(self.encryption_frame, text="Encryption Method:").grid(row=2, column=0, sticky=tk.W, padx=10, pady=5)
         
         # Create combobox for encryption types
-        self.encryption_type_var = tk.StringVar()
-        self.encryption_type_combo = ttk.Combobox(self.encryption_frame, textvariable=self.encryption_type_var, state="readonly")
         encryption_types = Encription.get_encryption_types()
-        self.encryption_type_combo['values'] = [t["name"] for t in encryption_types]
-        self.encryption_type_combo.current(0)  # Set default to first option
+        encryption_type_names = [t["name"] for t in encryption_types]
+        self.encryption_type_combo = ctk.CTkComboBox(self.encryption_frame, values=encryption_type_names, command=self.on_encryption_type_changed_ctk)
+        self.encryption_type_combo.set(encryption_type_names[0])  # Set default to first option
         self.encryption_type_combo.grid(row=2, column=1, sticky=tk.W, padx=10, pady=5)
-        self.encryption_type_combo.bind('<<ComboboxSelected>>', self.on_encryption_type_changed)
         
         # Create a frame for encryption parameters
-        self.params_frame = ttk.LabelFrame(self.encryption_frame, text="Encryption Parameters")
+        self.params_frame = ctk.CTkFrame(self.encryption_frame)
         self.params_frame.grid(row=3, column=0, padx=10, pady=5, sticky=(tk.W, tk.E, tk.N, tk.S))
+        ctk.CTkLabel(self.params_frame, text="Encryption Parameters", font=("Segoe UI", 12, "bold")).grid(row=0, column=0, columnspan=4, sticky=tk.W, padx=5, pady=5)
         
         # Create a frame for Tags
-        self.tags_frame = ttk.LabelFrame(self.encryption_frame, text="Key Tags")
+        self.tags_frame = ctk.CTkFrame(self.encryption_frame)
         self.tags_frame.grid(row=3, column=1, padx=10, pady=5, sticky=(tk.W, tk.E, tk.N, tk.S))
+        ctk.CTkLabel(self.tags_frame, text="Key Tags", font=("Segoe UI", 12, "bold")).grid(row=0, column=0, columnspan=2, sticky=tk.W, padx=5, pady=5)
         
-        ttk.Label(self.tags_frame, text="Key Name:").grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
-        self.key_name_entry = ttk.Entry(self.tags_frame, width=20)
-        self.key_name_entry.grid(row=0, column=1, sticky=tk.W, padx=5, pady=5)
+        ctk.CTkLabel(self.tags_frame, text="Key Name:").grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
+        self.key_name_entry = ctk.CTkEntry(self.tags_frame, width=150)
+        self.key_name_entry.grid(row=1, column=1, sticky=tk.W, padx=5, pady=5)
         
-        ttk.Label(self.tags_frame, text="Tag:").grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
-        self.key_tag_entry = ttk.Entry(self.tags_frame, width=20)
-        self.key_tag_entry.grid(row=1, column=1, sticky=tk.W, padx=5, pady=5)
+        ctk.CTkLabel(self.tags_frame, text="Tag:").grid(row=2, column=0, sticky=tk.W, padx=5, pady=5)
+        self.key_tag_entry = ctk.CTkEntry(self.tags_frame, width=150)
+        self.key_tag_entry.grid(row=2, column=1, sticky=tk.W, padx=5, pady=5)
         
         # Initial setup for Caesar+Substitution parameters
         self.setup_caesar_params()
         
         # Buttons
-        self.encrypt_button = ttk.Button(self.encryption_frame, text="Encrypt", command=self.encrypt_text)
+        self.encrypt_button = ctk.CTkButton(self.encryption_frame, text="Encrypt", command=self.encrypt_text)
         self.encrypt_button.grid(row=4, column=0, padx=10, pady=10, sticky=tk.W)
         
-        self.decrypt_button = ttk.Button(self.encryption_frame, text="Decrypt", command=self.decrypt_text)
+        self.decrypt_button = ctk.CTkButton(self.encryption_frame, text="Decrypt", command=self.decrypt_text)
         self.decrypt_button.grid(row=4, column=1, padx=10, pady=10, sticky=tk.W)
         
         # Output text area
-        ttk.Label(self.encryption_frame, text="Result:").grid(row=5, column=0, sticky=tk.W, padx=10, pady=5)
-        self.output_text = scrolledtext.ScrolledText(self.encryption_frame, width=40, height=5)
+        ctk.CTkLabel(self.encryption_frame, text="Result:").grid(row=5, column=0, sticky=tk.W, padx=10, pady=5)
+        self.output_text = ctk.CTkTextbox(self.encryption_frame, width=400, height=100)
         self.output_text.grid(row=6, column=0, columnspan=2, padx=10, pady=5, sticky=(tk.W, tk.E))
         
         # Save key button
-        self.save_key_button = ttk.Button(self.encryption_frame, text="Save Encryption Key", command=self.save_key)
+        self.save_key_button = ctk.CTkButton(self.encryption_frame, text="Save Encryption Key", command=self.save_key)
         self.save_key_button.grid(row=7, column=0, padx=10, pady=10, sticky=tk.W)
         
         # Load key button
-        self.load_key_button = ttk.Button(self.encryption_frame, text="Load Encryption Key", command=self.load_key)
+        self.load_key_button = ctk.CTkButton(self.encryption_frame, text="Load Encryption Key", command=self.load_key)
         self.load_key_button.grid(row=7, column=1, padx=10, pady=10, sticky=tk.W)
         
         # File/Folder encryption section
-        file_frame = ttk.LabelFrame(self.encryption_frame, text="File & Folder Encryption")
+        file_frame = ctk.CTkFrame(self.encryption_frame)
         file_frame.grid(row=8, column=0, columnspan=2, padx=10, pady=10, sticky=(tk.W, tk.E))
+        ctk.CTkLabel(file_frame, text="File & Folder Encryption", font=("Segoe UI", 12, "bold")).grid(row=0, column=0, columnspan=2, sticky=tk.W, padx=5, pady=5)
         
         # File selection
-        ttk.Label(file_frame, text="Selected:").grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
+        ctk.CTkLabel(file_frame, text="Selected:").grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
         self.file_path_var = tk.StringVar()
-        ttk.Entry(file_frame, textvariable=self.file_path_var, width=40).grid(row=0, column=1, padx=5, pady=5, sticky=(tk.W, tk.E))
+        ctk.CTkEntry(file_frame, textvariable=self.file_path_var, width=300).grid(row=1, column=1, padx=5, pady=5, sticky=(tk.W, tk.E))
         
         # Browse buttons
-        btn_frame = ttk.Frame(file_frame)
-        btn_frame.grid(row=1, column=0, columnspan=2, padx=5, pady=5)
+        btn_frame = ctk.CTkFrame(file_frame, fg_color="transparent")
+        btn_frame.grid(row=2, column=0, columnspan=2, padx=5, pady=5)
         
-        ttk.Button(btn_frame, text="Browse File", command=self.browse_file).pack(side=tk.LEFT, padx=2)
-        ttk.Button(btn_frame, text="Browse Folder", command=self.browse_folder).pack(side=tk.LEFT, padx=2)
+        ctk.CTkButton(btn_frame, text="Browse File", command=self.browse_file).pack(side=tk.LEFT, padx=5)
+        ctk.CTkButton(btn_frame, text="Browse Folder", command=self.browse_folder).pack(side=tk.LEFT, padx=5)
         
         # Action buttons
-        action_frame = ttk.Frame(file_frame)
-        action_frame.grid(row=2, column=0, columnspan=2, padx=5, pady=5)
+        action_frame = ctk.CTkFrame(file_frame, fg_color="transparent")
+        action_frame.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
         
-        ttk.Button(action_frame, text="Encrypt File/Folder", command=self.encrypt_file_folder).pack(side=tk.LEFT, padx=2)
-        ttk.Button(action_frame, text="Decrypt File/Folder", command=self.decrypt_file_folder).pack(side=tk.LEFT, padx=2)
+        ctk.CTkButton(action_frame, text="Encrypt File/Folder", command=self.encrypt_file_folder).pack(side=tk.LEFT, padx=5)
+        ctk.CTkButton(action_frame, text="Decrypt File/Folder", command=self.decrypt_file_folder).pack(side=tk.LEFT, padx=5)
     
     def clear_params_frame(self):
         # Clear all widgets from params frame
@@ -994,90 +911,90 @@ class EncryptionApp:
     
     def setup_caesar_params(self):
         self.clear_params_frame()
-        ttk.Label(self.params_frame, text="Caesar Shift Value:").grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
-        self.shift_entry = ttk.Entry(self.params_frame, width=5)
+        ctk.CTkLabel(self.params_frame, text="Caesar Shift Value:").grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
+        self.shift_entry = ctk.CTkEntry(self.params_frame, width=50)
         self.shift_entry.insert(0, "3")  # Default shift
         self.shift_entry.grid(row=0, column=1, sticky=tk.W, padx=10, pady=5)
         
-        ttk.Button(self.params_frame, text="Randomize", command=self.randomize_caesar).grid(row=0, column=2, padx=5, pady=5)
+        ctk.CTkButton(self.params_frame, text="Randomize", command=self.randomize_caesar, width=100).grid(row=0, column=2, padx=5, pady=5)
         
         # Range settings
-        ttk.Label(self.params_frame, text="Random Range:").grid(row=1, column=0, sticky=tk.W, padx=10, pady=5)
-        range_frame = ttk.Frame(self.params_frame)
+        ctk.CTkLabel(self.params_frame, text="Random Range:").grid(row=1, column=0, sticky=tk.W, padx=10, pady=5)
+        range_frame = ctk.CTkFrame(self.params_frame, fg_color="transparent")
         range_frame.grid(row=1, column=1, columnspan=2, sticky=tk.W, padx=10, pady=5)
         
-        ttk.Label(range_frame, text="Min:").pack(side=tk.LEFT)
-        self.caesar_min_entry = ttk.Entry(range_frame, width=4)
+        ctk.CTkLabel(range_frame, text="Min:").pack(side=tk.LEFT)
+        self.caesar_min_entry = ctk.CTkEntry(range_frame, width=40)
         self.caesar_min_entry.insert(0, "1")
         self.caesar_min_entry.pack(side=tk.LEFT, padx=2)
         
-        ttk.Label(range_frame, text="Max:").pack(side=tk.LEFT, padx=(5,0))
-        self.caesar_max_entry = ttk.Entry(range_frame, width=4)
+        ctk.CTkLabel(range_frame, text="Max:").pack(side=tk.LEFT, padx=(5,0))
+        self.caesar_max_entry = ctk.CTkEntry(range_frame, width=40)
         self.caesar_max_entry.insert(0, "25")
         self.caesar_max_entry.pack(side=tk.LEFT, padx=2)
 
     def setup_vigenere_params(self):
         self.clear_params_frame()
-        ttk.Label(self.params_frame, text="Vigenere Key:").grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
-        self.vigenere_key_entry = ttk.Entry(self.params_frame, width=20)
+        ctk.CTkLabel(self.params_frame, text="Vigenere Key:").grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
+        self.vigenere_key_entry = ctk.CTkEntry(self.params_frame, width=150)
         self.vigenere_key_entry.insert(0, "SECRET")  # Default key
         self.vigenere_key_entry.grid(row=0, column=1, sticky=tk.W, padx=10, pady=5)
         
-        ttk.Button(self.params_frame, text="Randomize", command=self.randomize_vigenere).grid(row=0, column=2, padx=5, pady=5)
+        ctk.CTkButton(self.params_frame, text="Randomize", command=self.randomize_vigenere, width=100).grid(row=0, column=2, padx=5, pady=5)
         
         # Length range settings
-        ttk.Label(self.params_frame, text="Random Length:").grid(row=1, column=0, sticky=tk.W, padx=10, pady=5)
-        length_frame = ttk.Frame(self.params_frame)
+        ctk.CTkLabel(self.params_frame, text="Random Length:").grid(row=1, column=0, sticky=tk.W, padx=10, pady=5)
+        length_frame = ctk.CTkFrame(self.params_frame, fg_color="transparent")
         length_frame.grid(row=1, column=1, columnspan=2, sticky=tk.W, padx=10, pady=5)
         
-        ttk.Label(length_frame, text="Min:").pack(side=tk.LEFT)
-        self.vigenere_min_entry = ttk.Entry(length_frame, width=4)
+        ctk.CTkLabel(length_frame, text="Min:").pack(side=tk.LEFT)
+        self.vigenere_min_entry = ctk.CTkEntry(length_frame, width=40)
         self.vigenere_min_entry.insert(0, "8")
         self.vigenere_min_entry.pack(side=tk.LEFT, padx=2)
         
-        ttk.Label(length_frame, text="Max:").pack(side=tk.LEFT, padx=(5,0))
-        self.vigenere_max_entry = ttk.Entry(length_frame, width=4)
+        ctk.CTkLabel(length_frame, text="Max:").pack(side=tk.LEFT, padx=(5,0))
+        self.vigenere_max_entry = ctk.CTkEntry(length_frame, width=40)
         self.vigenere_max_entry.insert(0, "16")
         self.vigenere_max_entry.pack(side=tk.LEFT, padx=2)
         
         # Character set
-        ttk.Label(self.params_frame, text="Characters:").grid(row=2, column=0, sticky=tk.W, padx=10, pady=5)
-        self.vigenere_chars_entry = ttk.Entry(self.params_frame, width=30)
+        ctk.CTkLabel(self.params_frame, text="Characters:").grid(row=2, column=0, sticky=tk.W, padx=10, pady=5)
+        self.vigenere_chars_entry = ctk.CTkEntry(self.params_frame, width=250)
         self.vigenere_chars_entry.insert(0, "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
         self.vigenere_chars_entry.grid(row=2, column=1, columnspan=2, sticky=tk.W, padx=10, pady=5)
 
     def setup_aes_params(self):
         self.clear_params_frame()
-        ttk.Label(self.params_frame, text="Password:").grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
-        self.aes_password_entry = ttk.Entry(self.params_frame, width=20, show="*")
+        ctk.CTkLabel(self.params_frame, text="Password:").grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
+        self.aes_password_entry = ctk.CTkEntry(self.params_frame, width=150, show="*")
         self.aes_password_entry.insert(0, "StrongPassword123")  # Default password
         self.aes_password_entry.grid(row=0, column=1, sticky=tk.W, padx=10, pady=5)
         
-        ttk.Button(self.params_frame, text="Randomize", command=self.randomize_aes).grid(row=0, column=2, padx=5, pady=5)
-        ttk.Button(self.params_frame, text="Show/Hide", command=self.toggle_password_visibility).grid(row=0, column=3, padx=5, pady=5)
+        ctk.CTkButton(self.params_frame, text="Randomize", command=self.randomize_aes, width=100).grid(row=0, column=2, padx=5, pady=5)
+        ctk.CTkButton(self.params_frame, text="Show/Hide", command=self.toggle_password_visibility, width=100).grid(row=0, column=3, padx=5, pady=5)
         
         # Length setting
-        ttk.Label(self.params_frame, text="Random Length:").grid(row=1, column=0, sticky=tk.W, padx=10, pady=5)
-        self.aes_length_entry = ttk.Entry(self.params_frame, width=5)
+        ctk.CTkLabel(self.params_frame, text="Random Length:").grid(row=1, column=0, sticky=tk.W, padx=10, pady=5)
+        self.aes_length_entry = ctk.CTkEntry(self.params_frame, width=50)
         self.aes_length_entry.insert(0, "16")
         self.aes_length_entry.grid(row=1, column=1, sticky=tk.W, padx=10, pady=5)
         
         # Character types
-        ttk.Label(self.params_frame, text="Include:").grid(row=2, column=0, sticky=tk.W, padx=10, pady=5)
-        char_frame = ttk.Frame(self.params_frame)
+        ctk.CTkLabel(self.params_frame, text="Include:").grid(row=2, column=0, sticky=tk.W, padx=10, pady=5)
+        char_frame = ctk.CTkFrame(self.params_frame, fg_color="transparent")
         char_frame.grid(row=2, column=1, columnspan=3, sticky=tk.W, padx=10, pady=5)
         
         self.aes_use_letters = tk.BooleanVar(value=True)
-        ttk.Checkbutton(char_frame, text="Letters", variable=self.aes_use_letters).pack(side=tk.LEFT, padx=5)
+        ctk.CTkCheckBox(char_frame, text="Letters", variable=self.aes_use_letters).pack(side=tk.LEFT, padx=5)
         
         self.aes_use_digits = tk.BooleanVar(value=True)
-        ttk.Checkbutton(char_frame, text="Digits", variable=self.aes_use_digits).pack(side=tk.LEFT, padx=5)
+        ctk.CTkCheckBox(char_frame, text="Digits", variable=self.aes_use_digits).pack(side=tk.LEFT, padx=5)
         
         self.aes_use_special = tk.BooleanVar(value=True)
-        ttk.Checkbutton(char_frame, text="Special", variable=self.aes_use_special).pack(side=tk.LEFT, padx=5)
+        ctk.CTkCheckBox(char_frame, text="Special", variable=self.aes_use_special).pack(side=tk.LEFT, padx=5)
     
-    def on_encryption_type_changed(self, event):
-        selected_name = self.encryption_type_var.get()
+    def on_encryption_type_changed_ctk(self, choice):
+        selected_name = choice
         encryption_types = Encription.get_encryption_types()
         
         # Find the matching encryption type
@@ -1096,171 +1013,191 @@ class EncryptionApp:
     
     def setup_server_tab(self):
         # Create a frame for the server config
-        server_config_frame = ttk.LabelFrame(self.server_frame, text="Server Configuration")
+        server_config_frame = ctk.CTkFrame(self.server_frame)
         server_config_frame.grid(row=0, column=0, columnspan=2, padx=10, pady=5, sticky=(tk.W, tk.E))
+        ctk.CTkLabel(server_config_frame, text="Server Configuration", font=("Segoe UI", 12, "bold")).grid(row=0, column=0, columnspan=2, sticky=tk.W, padx=10, pady=5)
         
         # Server configuration
-        ttk.Label(server_config_frame, text="Host:").grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
-        self.server_host = ttk.Entry(server_config_frame, width=15)
+        ctk.CTkLabel(server_config_frame, text="Host:").grid(row=1, column=0, sticky=tk.W, padx=10, pady=5)
+        self.server_host = ctk.CTkEntry(server_config_frame, width=150)
         self.server_host.insert(0, self.get_local_ip())
-        self.server_host.grid(row=0, column=1, sticky=tk.W, padx=10, pady=5)
+        self.server_host.grid(row=1, column=1, sticky=tk.W, padx=10, pady=5)
         
-        ttk.Label(server_config_frame, text="Port:").grid(row=1, column=0, sticky=tk.W, padx=10, pady=5)
-        self.server_port = ttk.Entry(server_config_frame, width=5)
+        ctk.CTkLabel(server_config_frame, text="Port:").grid(row=2, column=0, sticky=tk.W, padx=10, pady=5)
+        self.server_port = ctk.CTkEntry(server_config_frame, width=80)
         self.server_port.insert(0, "8000")
-        self.server_port.grid(row=1, column=1, sticky=tk.W, padx=10, pady=5)
+        self.server_port.grid(row=2, column=1, sticky=tk.W, padx=10, pady=5)
         
         # Start/Stop server buttons
-        self.start_server_button = ttk.Button(server_config_frame, text="Start Server", command=self.start_server)
-        self.start_server_button.grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
+        self.start_server_button = ctk.CTkButton(server_config_frame, text="Start Server", command=self.start_server)
+        self.start_server_button.grid(row=3, column=0, padx=10, pady=10, sticky=tk.W)
         
-        self.stop_server_button = ttk.Button(server_config_frame, text="Stop Server", command=self.stop_server, state="disabled")
-        self.stop_server_button.grid(row=2, column=1, padx=10, pady=10, sticky=tk.W)
+        self.stop_server_button = ctk.CTkButton(server_config_frame, text="Stop Server", command=self.stop_server, state="disabled")
+        self.stop_server_button.grid(row=3, column=1, padx=10, pady=10, sticky=tk.W)
+        
         
         # Connected clients frame
-        clients_frame = ttk.LabelFrame(self.server_frame, text="Connected Clients")
+        clients_frame = ctk.CTkFrame(self.server_frame)
         clients_frame.grid(row=1, column=0, padx=10, pady=5, sticky=(tk.W, tk.E, tk.N, tk.S))
+        ctk.CTkLabel(clients_frame, text="Connected Clients", font=("Segoe UI", 12, "bold")).grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
         
-        # Clients listbox
-        ttk.Label(clients_frame, text="Select a client:").grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
-        self.clients_listbox = tk.Listbox(clients_frame, height=5)
-        self.clients_listbox.grid(row=1, column=0, padx=10, pady=5, sticky=(tk.W, tk.E))
-        self.clients_listbox.bind('<<ListboxSelect>>', self.on_client_selected)
+        # Clients list using scrollable frame
+        ctk.CTkLabel(clients_frame, text="Select a client:").grid(row=1, column=0, sticky=tk.W, padx=10, pady=5)
+        
+        # Create scrollable frame for clients
+        self.clients_scroll_frame = ctk.CTkScrollableFrame(clients_frame, height=120)
+        self.clients_scroll_frame.grid(row=2, column=0, padx=10, pady=5, sticky=(tk.W, tk.E))
+        
+        # Store client buttons and selected client
+        self.client_buttons = {}
+        self.selected_client = None
         
         # Kick button
-        self.kick_button = ttk.Button(clients_frame, text="Kick Selected Client", command=self.kick_selected_client)
-        self.kick_button.grid(row=2, column=0, padx=10, pady=5, sticky=tk.W)
+        self.kick_button = ctk.CTkButton(clients_frame, text="Kick Selected Client", command=self.kick_selected_client)
+        self.kick_button.grid(row=3, column=0, padx=10, pady=5, sticky=tk.W)
         
         # Server message area
-        send_frame = ttk.LabelFrame(self.server_frame, text="Send Message")
+        send_frame = ctk.CTkFrame(self.server_frame)
         send_frame.grid(row=1, column=1, padx=10, pady=5, sticky=(tk.W, tk.E, tk.N, tk.S))
+        ctk.CTkLabel(send_frame, text="Send Message", font=("Segoe UI", 12, "bold")).grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
         
         # Message to send
-        ttk.Label(send_frame, text="Message:").grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
-        self.server_message = scrolledtext.ScrolledText(send_frame, width=30, height=3)
-        self.server_message.grid(row=1, column=0, padx=10, pady=5, sticky=(tk.W, tk.E))
+        ctk.CTkLabel(send_frame, text="Message:").grid(row=1, column=0, sticky=tk.W, padx=10, pady=5)
+        self.server_message = ctk.CTkTextbox(send_frame, width=300, height=60)
+        self.server_message.grid(row=2, column=0, padx=10, pady=5, sticky=(tk.W, tk.E))
         
         # Encrypt before sending checkbox
         self.encrypt_server_message = tk.BooleanVar()
         # Encrypt options frame
-        encrypt_frame = ttk.Frame(send_frame)
-        encrypt_frame.grid(row=2, column=0, padx=10, pady=5, sticky=tk.W)
+        encrypt_frame = ctk.CTkFrame(send_frame, fg_color="transparent")
+        encrypt_frame.grid(row=3, column=0, padx=10, pady=5, sticky=tk.W)
         
-        self.encrypt_server_checkbox = ttk.Checkbutton(encrypt_frame, text="Encrypt message", variable=self.encrypt_server_message)
+        self.encrypt_server_checkbox = ctk.CTkCheckBox(encrypt_frame, text="Encrypt message", variable=self.encrypt_server_message)
         self.encrypt_server_checkbox.pack(side=tk.LEFT)
         
-        ttk.Button(encrypt_frame, text="Load Key", command=self.load_key).pack(side=tk.LEFT, padx=5)
+        ctk.CTkButton(encrypt_frame, text="Load Key", command=self.load_key, width=100).pack(side=tk.LEFT, padx=5)
         
         # Send buttons
-        self.send_to_selected_button = ttk.Button(send_frame, text="Send to Selected", command=self.send_to_selected_client)
-        self.send_to_selected_button.grid(row=3, column=0, padx=10, pady=5, sticky=tk.W)
+        self.send_to_selected_button = ctk.CTkButton(send_frame, text="Send to Selected", command=self.send_to_selected_client)
+        self.send_to_selected_button.grid(row=4, column=0, padx=10, pady=5, sticky=tk.W)
         
-        self.broadcast_button = ttk.Button(send_frame, text="Broadcast to All", command=self.broadcast_message)
-        self.broadcast_button.grid(row=4, column=0, padx=10, pady=5, sticky=tk.W)
+        self.broadcast_button = ctk.CTkButton(send_frame, text="Broadcast to All", command=self.broadcast_message)
+        self.broadcast_button.grid(row=5, column=0, padx=10, pady=5, sticky=tk.W)
         
         # File transfer section (next to send_frame)
-        file_transfer_frame = ttk.LabelFrame(self.server_frame, text="File Transfer")
+        file_transfer_frame = ctk.CTkFrame(self.server_frame)
         file_transfer_frame.grid(row=1, column=2, padx=10, pady=5, sticky=(tk.W, tk.E, tk.N, tk.S))
+        ctk.CTkLabel(file_transfer_frame, text="File Transfer", font=("Segoe UI", 12, "bold")).pack(anchor=tk.W, padx=10, pady=5)
         
         self.server_file_path_var = tk.StringVar()
-        ttk.Entry(file_transfer_frame, textvariable=self.server_file_path_var, width=25).pack(fill=tk.X, padx=5, pady=2)
+        ctk.CTkEntry(file_transfer_frame, textvariable=self.server_file_path_var, width=200).pack(fill=tk.X, padx=10, pady=2)
         
-        file_btn_frame = ttk.Frame(file_transfer_frame)
-        file_btn_frame.pack(fill=tk.X, padx=5, pady=2)
+        file_btn_frame = ctk.CTkFrame(file_transfer_frame, fg_color="transparent")
+        file_btn_frame.pack(fill=tk.X, padx=10, pady=2)
         
-        ttk.Button(file_btn_frame, text="Browse File", command=lambda: self.browse_file_for_transfer('server')).pack(side=tk.LEFT, padx=2)
-        ttk.Button(file_btn_frame, text="Browse Folder", command=lambda: self.browse_folder_for_transfer('server')).pack(side=tk.LEFT, padx=2)
+        ctk.CTkButton(file_btn_frame, text="Browse File", command=lambda: self.browse_file_for_transfer('server'), width=90).pack(side=tk.LEFT, padx=2)
+        ctk.CTkButton(file_btn_frame, text="Browse Folder", command=lambda: self.browse_folder_for_transfer('server'), width=90).pack(side=tk.LEFT, padx=2)
         
-        ttk.Button(file_transfer_frame, text="Send File/Folder", command=self.send_file_to_client).pack(fill=tk.X, padx=5, pady=2)
+        ctk.CTkButton(file_transfer_frame, text="Send File/Folder", command=self.send_file_to_client).pack(fill=tk.X, padx=10, pady=2)
         
         # Server log
-        log_frame = ttk.LabelFrame(self.server_frame, text="Server Log")
+        log_frame = ctk.CTkFrame(self.server_frame)
         log_frame.grid(row=2, column=0, columnspan=2, padx=10, pady=5, sticky=(tk.W, tk.E, tk.S))
+        ctk.CTkLabel(log_frame, text="Server Log", font=("Segoe UI", 12, "bold")).pack(anchor=tk.W, padx=10, pady=5)
         
-        self.server_log = scrolledtext.ScrolledText(log_frame, width=50, height=10)
-        self.server_log.grid(row=0, column=0, padx=10, pady=5, sticky=(tk.W, tk.E))
+        self.server_log = ctk.CTkTextbox(log_frame, width=500, height=150)
+        self.server_log.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
         
         # Decryption section for Server
-        decrypt_frame = ttk.LabelFrame(self.server_frame, text="Manual Decryption")
+        decrypt_frame = ctk.CTkFrame(self.server_frame)
         decrypt_frame.grid(row=3, column=0, columnspan=2, padx=10, pady=5, sticky=(tk.W, tk.E))
+        ctk.CTkLabel(decrypt_frame, text="Manual Decryption", font=("Segoe UI", 12, "bold")).pack(anchor=tk.W, padx=10, pady=5)
         
-        ttk.Button(decrypt_frame, text="Decrypt Selected Log Entry", command=lambda: self.decrypt_selected_log_entry(self.server_log, self.server_decrypt_output)).pack(anchor=tk.W, padx=10, pady=5)
+        ctk.CTkButton(decrypt_frame, text="Decrypt Selected Log Entry", command=lambda: self.decrypt_selected_log_entry(self.server_log, self.server_decrypt_output)).pack(anchor=tk.W, padx=10, pady=5)
         
-        self.server_decrypt_output = scrolledtext.ScrolledText(decrypt_frame, width=50, height=3)
+        self.server_decrypt_output = ctk.CTkTextbox(decrypt_frame, width=500, height=60)
         self.server_decrypt_output.pack(fill=tk.X, padx=10, pady=5)
         
     def setup_client_tab(self):
         # Client configuration
-        ttk.Label(self.client_frame, text="Server Host:").grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
-        self.client_host = ttk.Entry(self.client_frame, width=15)
-        self.client_host.insert(0, self.get_local_ip())
-        self.client_host.grid(row=0, column=1, sticky=tk.W, padx=10, pady=5)
+        config_frame = ctk.CTkFrame(self.client_frame)
+        config_frame.grid(row=0, column=0, columnspan=2, padx=10, pady=5, sticky=(tk.W, tk.E))
+        ctk.CTkLabel(config_frame, text="Client Configuration", font=("Segoe UI", 12, "bold")).grid(row=0, column=0, columnspan=2, sticky=tk.W, padx=10, pady=5)
         
-        ttk.Label(self.client_frame, text="Server Port:").grid(row=1, column=0, sticky=tk.W, padx=10, pady=5)
-        self.client_port = ttk.Entry(self.client_frame, width=5)
+        ctk.CTkLabel(config_frame, text="Server Host:").grid(row=1, column=0, sticky=tk.W, padx=10, pady=5)
+        self.client_host = ctk.CTkEntry(config_frame, width=150)
+        self.client_host.insert(0, self.get_local_ip())
+        self.client_host.grid(row=1, column=1, sticky=tk.W, padx=10, pady=5)
+        
+        ctk.CTkLabel(config_frame, text="Server Port:").grid(row=2, column=0, sticky=tk.W, padx=10, pady=5)
+        self.client_port = ctk.CTkEntry(config_frame, width=80)
         self.client_port.insert(0, "8000")
-        self.client_port.grid(row=1, column=1, sticky=tk.W, padx=10, pady=5)
+        self.client_port.grid(row=2, column=1, sticky=tk.W, padx=10, pady=5)
         
         # Connect button
-        self.connect_button = ttk.Button(self.client_frame, text="Connect to Server", command=self.connect_to_server)
-        self.connect_button.grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
+        self.connect_button = ctk.CTkButton(config_frame, text="Connect to Server", command=self.connect_to_server)
+        self.connect_button.grid(row=3, column=0, padx=10, pady=10, sticky=tk.W)
         
-        self.disconnect_button = ttk.Button(self.client_frame, text="Disconnect", command=self.disconnect_from_server, state="disabled")
-        self.disconnect_button.grid(row=2, column=1, padx=10, pady=10, sticky=tk.W)
+        self.disconnect_button = ctk.CTkButton(config_frame, text="Disconnect", command=self.disconnect_from_server, state="disabled")
+        self.disconnect_button.grid(row=3, column=1, padx=10, pady=10, sticky=tk.W)
         
         # Message section
-        message_frame = ttk.LabelFrame(self.client_frame, text="Send Message")
-        message_frame.grid(row=3, column=0, padx=10, pady=5, sticky=(tk.W, tk.E, tk.N, tk.S))
+        message_frame = ctk.CTkFrame(self.client_frame)
+        message_frame.grid(row=1, column=0, padx=10, pady=5, sticky=(tk.W, tk.E, tk.N, tk.S))
+        ctk.CTkLabel(message_frame, text="Send Message", font=("Segoe UI", 12, "bold")).grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
         
         # Message to send
-        ttk.Label(message_frame, text="Message:").grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
-        self.client_message = scrolledtext.ScrolledText(message_frame, width=40, height=5)
-        self.client_message.grid(row=1, column=0, padx=10, pady=5, sticky=(tk.W, tk.E))
+        ctk.CTkLabel(message_frame, text="Message:").grid(row=1, column=0, sticky=tk.W, padx=10, pady=5)
+        self.client_message = ctk.CTkTextbox(message_frame, width=400, height=100)
+        self.client_message.grid(row=2, column=0, padx=10, pady=5, sticky=(tk.W, tk.E))
         
         # Encrypt before sending checkbox
         self.encrypt_message = tk.BooleanVar()
         # Encrypt options frame
-        encrypt_frame = ttk.Frame(message_frame)
-        encrypt_frame.grid(row=2, column=0, padx=10, pady=5, sticky=tk.W)
+        encrypt_frame = ctk.CTkFrame(message_frame, fg_color="transparent")
+        encrypt_frame.grid(row=3, column=0, padx=10, pady=5, sticky=tk.W)
         
-        self.encrypt_checkbox = ttk.Checkbutton(encrypt_frame, text="Encrypt message", variable=self.encrypt_message)
+        self.encrypt_checkbox = ctk.CTkCheckBox(encrypt_frame, text="Encrypt message", variable=self.encrypt_message)
         self.encrypt_checkbox.pack(side=tk.LEFT)
         
-        ttk.Button(encrypt_frame, text="Load Key", command=self.load_key).pack(side=tk.LEFT, padx=5)
+        ctk.CTkButton(encrypt_frame, text="Load Key", command=self.load_key, width=100).pack(side=tk.LEFT, padx=5)
         
         # Send button
-        self.send_button = ttk.Button(message_frame, text="Send Message", command=self.send_message)
-        self.send_button.grid(row=3, column=0, padx=10, pady=10, sticky=tk.W)
+        self.send_button = ctk.CTkButton(message_frame, text="Send Message", command=self.send_message)
+        self.send_button.grid(row=4, column=0, padx=10, pady=10, sticky=tk.W)
         
         # File transfer section (next to message_frame)
-        file_transfer_frame = ttk.LabelFrame(self.client_frame, text="File Transfer")
-        file_transfer_frame.grid(row=3, column=1, padx=10, pady=5, sticky=(tk.W, tk.E, tk.N, tk.S))
+        file_transfer_frame = ctk.CTkFrame(self.client_frame)
+        file_transfer_frame.grid(row=1, column=1, padx=10, pady=5, sticky=(tk.W, tk.E, tk.N, tk.S))
+        ctk.CTkLabel(file_transfer_frame, text="File Transfer", font=("Segoe UI", 12, "bold")).pack(anchor=tk.W, padx=10, pady=5)
         
         self.client_file_path_var = tk.StringVar()
-        ttk.Entry(file_transfer_frame, textvariable=self.client_file_path_var, width=25).pack(fill=tk.X, padx=5, pady=2)
+        ctk.CTkEntry(file_transfer_frame, textvariable=self.client_file_path_var, width=200).pack(fill=tk.X, padx=10, pady=2)
         
-        file_btn_frame = ttk.Frame(file_transfer_frame)
-        file_btn_frame.pack(fill=tk.X, padx=5, pady=2)
+        file_btn_frame = ctk.CTkFrame(file_transfer_frame, fg_color="transparent")
+        file_btn_frame.pack(fill=tk.X, padx=10, pady=2)
         
-        ttk.Button(file_btn_frame, text="Browse File", command=lambda: self.browse_file_for_transfer('client')).pack(side=tk.LEFT, padx=2)
-        ttk.Button(file_btn_frame, text="Browse Folder", command=lambda: self.browse_folder_for_transfer('client')).pack(side=tk.LEFT, padx=2)
+        ctk.CTkButton(file_btn_frame, text="Browse File", command=lambda: self.browse_file_for_transfer('client'), width=90).pack(side=tk.LEFT, padx=2)
+        ctk.CTkButton(file_btn_frame, text="Browse Folder", command=lambda: self.browse_folder_for_transfer('client'), width=90).pack(side=tk.LEFT, padx=2)
         
-        ttk.Button(file_transfer_frame, text="Send File/Folder", command=self.send_file_to_server).pack(fill=tk.X, padx=5, pady=2)
+        ctk.CTkButton(file_transfer_frame, text="Send File/Folder", command=self.send_file_to_server).pack(fill=tk.X, padx=10, pady=2)
         
         # Client log
-        log_frame = ttk.LabelFrame(self.client_frame, text="Client Log")
-        log_frame.grid(row=4, column=0, columnspan=2, padx=10, pady=5, sticky=(tk.W, tk.E))
+        log_frame = ctk.CTkFrame(self.client_frame)
+        log_frame.grid(row=2, column=0, columnspan=2, padx=10, pady=5, sticky=(tk.W, tk.E))
+        ctk.CTkLabel(log_frame, text="Client Log", font=("Segoe UI", 12, "bold")).pack(anchor=tk.W, padx=10, pady=5)
         
-        self.client_log = scrolledtext.ScrolledText(log_frame, width=50, height=10)
-        self.client_log.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        self.client_log = ctk.CTkTextbox(log_frame, width=500, height=150)
+        self.client_log.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
         
         # Decryption section for Client
-        decrypt_frame = ttk.LabelFrame(self.client_frame, text="Manual Decryption")
-        decrypt_frame.grid(row=5, column=0, columnspan=2, padx=10, pady=5, sticky=(tk.W, tk.E))
+        decrypt_frame = ctk.CTkFrame(self.client_frame)
+        decrypt_frame.grid(row=3, column=0, columnspan=2, padx=10, pady=5, sticky=(tk.W, tk.E))
+        ctk.CTkLabel(decrypt_frame, text="Manual Decryption", font=("Segoe UI", 12, "bold")).pack(anchor=tk.W, padx=10, pady=5)
         
-        ttk.Button(decrypt_frame, text="Decrypt Selected Log Entry", command=lambda: self.decrypt_selected_log_entry(self.client_log, self.client_decrypt_output)).pack(anchor=tk.W, padx=10, pady=5)
+        ctk.CTkButton(decrypt_frame, text="Decrypt Selected Log Entry", command=lambda: self.decrypt_selected_log_entry(self.client_log, self.client_decrypt_output)).pack(anchor=tk.W, padx=10, pady=5)
         
-        self.client_decrypt_output = scrolledtext.ScrolledText(decrypt_frame, width=50, height=3)
+        self.client_decrypt_output = ctk.CTkTextbox(decrypt_frame, width=500, height=60)
         self.client_decrypt_output.pack(fill=tk.X, padx=10, pady=5)
     
     def decrypt_selected_log_entry(self, log_widget, output_widget):
@@ -1423,15 +1360,15 @@ class EncryptionApp:
             self.server_instance.set_client_kicked_handler(self.handle_client_kicked)
             
             # Update UI
-            self.start_server_button.config(state="disabled")
-            self.stop_server_button.config(state="normal")
+            self.start_server_button.configure(state="disabled")
+            self.stop_server_button.configure(state="normal")
             
             self.update_server_log("Server started successfully.\n")
         except Exception as e:
             self.update_server_log(f"Server error: {str(e)}\n")
             # Re-enable start button on error
-            self.root.after(0, lambda: self.start_server_button.config(state="normal"))
-            self.root.after(0, lambda: self.stop_server_button.config(state="disabled"))
+            self.root.after(0, lambda: self.start_server_button.configure(state="normal"))
+            self.root.after(0, lambda: self.stop_server_button.configure(state="disabled"))
     
     def handle_client_message(self, client_address, message):
         """Called when a client sends a message to the server"""
@@ -1452,36 +1389,62 @@ class EncryptionApp:
             
             # Update client list if this is a new client
             client_str = f"{client_address[0]}:{client_address[1]}"
-            if client_str not in self.clients_listbox.get(0, tk.END):
-                self.root.after(0, lambda: self.clients_listbox.insert(tk.END, client_str))
+            if client_str not in self.client_buttons:
+                self.root.after(0, lambda cs=client_str: self.add_client_to_list(cs))
         except Exception as e:
             self.update_server_log(f"Error handling client message: {str(e)}\n")
     
-    def handle_client_kicked(self, client_address, reason):
-        """Called when a client is kicked"""
-        self.update_server_log(f"Client {client_address} has been kicked: {reason}\n")
-        
-        # Remove from listbox
-        client_str = f"{client_address[0]}:{client_address[1]}"
-        for i in range(self.clients_listbox.size()):
-            if self.clients_listbox.get(i) == client_str:
-                self.clients_listbox.delete(i)
-                break
+    def add_client_to_list(self, client_str):
+        """Add a client button to the scrollable frame"""
+        btn = ctk.CTkButton(
+            self.clients_scroll_frame,
+            text=client_str,
+            command=lambda cs=client_str: self.select_client(cs),
+            fg_color="transparent",
+            hover_color=("gray70", "gray30"),
+            anchor="w"
+        )
+        btn.pack(fill=tk.X, pady=2)
+        self.client_buttons[client_str] = btn
     
-    def on_client_selected(self, event):
-        # Get selected client from listbox
-        selection = self.clients_listbox.curselection()
-        if selection:
-            index = selection[0]
-            selected_address = self.clients_listbox.get(index)
-            
-            # Parse the address (format is "ip:port")
-            try:
-                ip, port = selected_address.split(':')
-                port = int(port)
-                self.selected_client = (ip, port)
-            except:
-                self.selected_client = None
+    def remove_client_from_list(self, client_str):
+        """Remove a client button from the scrollable frame"""
+        if client_str in self.client_buttons:
+            self.client_buttons[client_str].destroy()
+            del self.client_buttons[client_str]
+    
+    def clear_client_list(self):
+        """Clear all client buttons"""
+        for widget in self.clients_scroll_frame.winfo_children():
+            widget.destroy()
+        self.client_buttons.clear()
+        self.selected_client = None
+    
+    def select_client(self, client_str):
+        """Select a client from the list"""
+        # Highlight selected client
+        for cs, btn in self.client_buttons.items():
+            if cs == client_str:
+                btn.configure(fg_color=("gray75", "gray25"))
+            else:
+                btn.configure(fg_color="transparent")
+        
+        # Parse the address (format is "ip:port")
+        try:
+            ip, port = client_str.split(':')
+            port = int(port)
+            self.selected_client = (ip, port)
+        except:
+            self.selected_client = None
+    
+    def handle_client_kicked(self, client_address, reason):
+        """Called when a client is kicked from the server"""
+        client_str = f"{client_address[0]}:{client_address[1]}"
+        self.update_server_log(f"Client {client_str} kicked: {reason}\n")
+        
+        # Remove from client list
+        if client_str in self.client_buttons:
+            self.root.after(0, lambda cs=client_str: self.remove_client_from_list(cs))
     
     def send_to_selected_client(self):
         if not self.server_instance:
@@ -1594,7 +1557,6 @@ class EncryptionApp:
     
     def _update_server_log_safe(self, message):
         self.server_log.insert(tk.END, message)
-        self.server_log.see(tk.END)
     
     def stop_server(self):
         if self.server_instance:
@@ -1603,11 +1565,11 @@ class EncryptionApp:
             self.server_instance = None
             
             # Clear the clients listbox
-            self.clients_listbox.delete(0, tk.END)
+            self.clear_client_list()
         
         # Update UI
-        self.start_server_button.config(state="normal")
-        self.stop_server_button.config(state="disabled")
+        self.start_server_button.configure(state="normal")
+        self.stop_server_button.configure(state="disabled")
         self.update_server_log("Server stopped.\n")
     
     def connect_to_server(self):
@@ -1616,7 +1578,6 @@ class EncryptionApp:
             port = int(self.client_port.get())
             
             self.client_log.insert(tk.END, f"Connecting to server at {host}:{port}...\n")
-            self.client_log.see(tk.END)
             
             self.client = Client(host, port)
             
@@ -1627,14 +1588,12 @@ class EncryptionApp:
             self.client.set_disconnect_callback(self.handle_disconnection)
             
             # Update UI
-            self.connect_button.config(state="disabled")
-            self.disconnect_button.config(state="normal")
+            self.connect_button.configure(state="disabled")
+            self.disconnect_button.configure(state="normal")
             
             self.client_log.insert(tk.END, "Connected successfully!\n")
-            self.client_log.see(tk.END)
         except Exception as e:
             self.client_log.insert(tk.END, f"Connection error: {str(e)}\n")
-            self.client_log.see(tk.END)
     
     def handle_server_message(self, message):
         """Called when a message is received from the server"""
@@ -1662,11 +1621,10 @@ class EncryptionApp:
     def _handle_disconnection_safe(self, reason):
         """Thread-safe handler for disconnection"""
         self.client_log.insert(tk.END, f"Disconnected from server: {reason}\n")
-        self.client_log.see(tk.END)
         
         # Update UI
-        self.connect_button.config(state="normal")
-        self.disconnect_button.config(state="disabled")
+        self.connect_button.configure(state="normal")
+        self.disconnect_button.configure(state="disabled")
         
         # Clear client reference
         self.client = None
@@ -2147,86 +2105,88 @@ class EncryptionApp:
         self.current_hash_type = "sha256"
         
         # Input section
-        input_frame = ttk.LabelFrame(self.hashing_frame, text="Input")
+        input_frame = ctk.CTkFrame(self.hashing_frame)
         input_frame.pack(fill=tk.X, padx=10, pady=5)
         
-        ttk.Label(input_frame, text="Enter text to hash:").pack(anchor=tk.W, padx=5, pady=2)
-        self.hash_input_text = scrolledtext.ScrolledText(input_frame, width=60, height=5)
-        self.hash_input_text.pack(fill=tk.X, padx=5, pady=5)
+        ctk.CTkLabel(input_frame, text="Enter text to hash:").pack(anchor=tk.W, padx=10, pady=5)
+        self.hash_input_text = ctk.CTkTextbox(input_frame, width=400, height=100)
+        self.hash_input_text.pack(fill=tk.X, padx=10, pady=5)
         
         # File selection
-        file_frame = ttk.Frame(input_frame)
+        file_frame = ctk.CTkFrame(input_frame, fg_color="transparent")
         file_frame.pack(fill=tk.X, padx=5, pady=5)
         
         self.hash_file_path_var = tk.StringVar()
-        ttk.Entry(file_frame, textvariable=self.hash_file_path_var).pack(side=tk.LEFT, fill=tk.X, expand=True)
-        ttk.Button(file_frame, text="Browse File...", command=self.browse_hash_file).pack(side=tk.LEFT, padx=5)
+        self.hash_file_entry = ctk.CTkEntry(file_frame, textvariable=self.hash_file_path_var)
+        self.hash_file_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+        ctk.CTkButton(file_frame, text="Browse File...", command=self.browse_hash_file).pack(side=tk.LEFT, padx=5)
         
         # Options section
-        options_frame = ttk.LabelFrame(self.hashing_frame, text="Options")
+        options_frame = ctk.CTkFrame(self.hashing_frame)
         options_frame.pack(fill=tk.X, padx=10, pady=5)
         
-        ttk.Label(options_frame, text="Hash Algorithm:").pack(side=tk.LEFT, padx=5, pady=5)
-        self.hash_type_combo = ttk.Combobox(options_frame, values=self.hash_types, state="readonly")
+        ctk.CTkLabel(options_frame, text="Hash Algorithm:").pack(side=tk.LEFT, padx=10, pady=5)
+        self.hash_type_combo = ctk.CTkComboBox(options_frame, values=self.hash_types, command=self.on_hash_type_change_ctk)
         self.hash_type_combo.set("sha256")
-        self.hash_type_combo.pack(side=tk.LEFT, padx=5, pady=5)
-        self.hash_type_combo.bind("<<ComboboxSelected>>", self.on_hash_type_change)
+        self.hash_type_combo.pack(side=tk.LEFT, padx=10, pady=5)
         
         # Actions
-        action_frame = ttk.Frame(self.hashing_frame)
+        action_frame = ctk.CTkFrame(self.hashing_frame, fg_color="transparent")
         action_frame.pack(fill=tk.X, padx=10, pady=10)
         
-        ttk.Button(action_frame, text="Hash Text", command=self.hash_text).pack(side=tk.LEFT, padx=5)
-        ttk.Button(action_frame, text="Hash File", command=self.hash_file).pack(side=tk.LEFT, padx=5)
+        ctk.CTkButton(action_frame, text="Hash Text", command=self.hash_text).pack(side=tk.LEFT, padx=10)
+        ctk.CTkButton(action_frame, text="Hash File", command=self.hash_file).pack(side=tk.LEFT, padx=10)
         
         # Output section
-        output_frame = ttk.LabelFrame(self.hashing_frame, text="Output")
+        output_frame = ctk.CTkFrame(self.hashing_frame)
         output_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
         
-        self.hash_output_text = scrolledtext.ScrolledText(output_frame, width=60, height=5)
-        self.hash_output_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        ctk.CTkLabel(output_frame, text="Output:").pack(anchor=tk.W, padx=10, pady=5)
+        self.hash_output_text = ctk.CTkTextbox(output_frame, width=400, height=100)
+        self.hash_output_text.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
 
     def setup_cracking_tab(self):
         # Input section
-        input_frame = ttk.LabelFrame(self.cracking_frame, text="Input")
+        input_frame = ctk.CTkFrame(self.cracking_frame)
         input_frame.pack(fill=tk.X, padx=10, pady=5)
         
-        ttk.Label(input_frame, text="Hash to Crack:").pack(anchor=tk.W, padx=5, pady=2)
-        self.crack_input_text = ttk.Entry(input_frame, width=60)
-        self.crack_input_text.pack(fill=tk.X, padx=5, pady=5)
+        ctk.CTkLabel(input_frame, text="Hash to Crack:").pack(anchor=tk.W, padx=10, pady=5)
+        self.crack_input_text = ctk.CTkEntry(input_frame, width=400)
+        self.crack_input_text.pack(fill=tk.X, padx=10, pady=5)
         
         # Options section
-        options_frame = ttk.LabelFrame(self.cracking_frame, text="Options")
+        options_frame = ctk.CTkFrame(self.cracking_frame)
         options_frame.pack(fill=tk.X, padx=10, pady=5)
         
-        ttk.Label(options_frame, text="Hash Algorithm:").grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
-        self.crack_hash_type_combo = ttk.Combobox(options_frame, values=self.hasher.get_hash_types(), state="readonly")
+        ctk.CTkLabel(options_frame, text="Hash Algorithm:").grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
+        self.crack_hash_type_combo = ctk.CTkComboBox(options_frame, values=self.hasher.get_hash_types())
         self.crack_hash_type_combo.set("sha256")
-        self.crack_hash_type_combo.grid(row=0, column=1, sticky=tk.W, padx=5, pady=5)
+        self.crack_hash_type_combo.grid(row=0, column=1, sticky=tk.W, padx=10, pady=5)
         
-        ttk.Label(options_frame, text="Max Length:").grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
-        self.crack_max_length = ttk.Entry(options_frame, width=5)
+        ctk.CTkLabel(options_frame, text="Max Length:").grid(row=1, column=0, sticky=tk.W, padx=10, pady=5)
+        self.crack_max_length = ctk.CTkEntry(options_frame, width=50)
         self.crack_max_length.insert(0, "4")
-        self.crack_max_length.grid(row=1, column=1, sticky=tk.W, padx=5, pady=5)
+        self.crack_max_length.grid(row=1, column=1, sticky=tk.W, padx=10, pady=5)
         
-        ttk.Label(options_frame, text="Charset:").grid(row=2, column=0, sticky=tk.W, padx=5, pady=5)
-        self.crack_charset = ttk.Entry(options_frame, width=40)
+        ctk.CTkLabel(options_frame, text="Charset:").grid(row=2, column=0, sticky=tk.W, padx=10, pady=5)
+        self.crack_charset = ctk.CTkEntry(options_frame, width=300)
         self.crack_charset.insert(0, "abcdefghijklmnopqrstuvwxyz0123456789")
-        self.crack_charset.grid(row=2, column=1, sticky=tk.W, padx=5, pady=5)
+        self.crack_charset.grid(row=2, column=1, sticky=tk.W, padx=10, pady=5)
         
         # Actions
-        action_frame = ttk.Frame(self.cracking_frame)
+        action_frame = ctk.CTkFrame(self.cracking_frame, fg_color="transparent")
         action_frame.pack(fill=tk.X, padx=10, pady=10)
         
-        ttk.Button(action_frame, text="Estimate Time", command=self.estimate_crack_time).pack(side=tk.LEFT, padx=5)
-        ttk.Button(action_frame, text="Start Cracking", command=self.start_cracking).pack(side=tk.LEFT, padx=5)
+        ctk.CTkButton(action_frame, text="Estimate Time", command=self.estimate_crack_time).pack(side=tk.LEFT, padx=10)
+        ctk.CTkButton(action_frame, text="Start Cracking", command=self.start_cracking).pack(side=tk.LEFT, padx=10)
         
         # Output section
-        output_frame = ttk.LabelFrame(self.cracking_frame, text="Output")
+        output_frame = ctk.CTkFrame(self.cracking_frame)
         output_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
         
-        self.crack_output_text = scrolledtext.ScrolledText(output_frame, width=60, height=10)
-        self.crack_output_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        ctk.CTkLabel(output_frame, text="Output:").pack(anchor=tk.W, padx=10, pady=5)
+        self.crack_output_text = ctk.CTkTextbox(output_frame, width=400, height=100)
+        self.crack_output_text.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
 
     def estimate_crack_time(self):
         try:
@@ -2306,8 +2266,8 @@ class EncryptionApp:
         if filename:
             self.hash_file_path_var.set(filename)
             
-    def on_hash_type_change(self, event):
-        self.current_hash_type = self.hash_type_combo.get()
+    def on_hash_type_change_ctk(self, choice):
+        self.current_hash_type = choice
         
     def hash_text(self):
         text = self.hash_input_text.get("1.0", tk.END).strip()
@@ -3044,79 +3004,86 @@ class EncryptionApp:
         self.fc_current_chat = None # Username
         self.fc_chat_histories = {} # {username: [messages]}
         
-        # Main Container - Split View
-        paned = tk.PanedWindow(self.fast_connect_frame, orient=tk.HORIZONTAL, bg="#0f172a")
-        paned.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        # Main Container - Split View using CTk Frames
+        main_container = ctk.CTkFrame(self.fast_connect_frame)
+        main_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
         # Left Panel (Sidebar)
-        left_panel = ttk.Frame(paned, width=250)
-        paned.add(left_panel)
+        left_panel = ctk.CTkFrame(main_container, width=250)
+        left_panel.pack(side=tk.LEFT, fill=tk.BOTH, padx=(0, 5))
+        left_panel.pack_propagate(False)
         
         # Right Panel (Chat)
-        right_panel = ttk.Frame(paned)
-        paned.add(right_panel)
+        right_panel = ctk.CTkFrame(main_container)
+        right_panel.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
         
         # === Left Panel Content ===
         
         # 1. Server Connection
-        server_frame = ttk.LabelFrame(left_panel, text="Connection", padding="5")
-        server_frame.pack(fill=tk.X, pady=(0, 10))
+        server_frame = ctk.CTkFrame(left_panel)
+        server_frame.pack(fill=tk.X, pady=(0, 10), padx=5)
+        ctk.CTkLabel(server_frame, text="Connection", font=("Segoe UI", 12, "bold")).pack(anchor=tk.W, padx=5, pady=5)
         
-        ttk.Label(server_frame, text="Server IP:").pack(anchor=tk.W)
-        self.fc_server_ip = ttk.Entry(server_frame)
+        ctk.CTkLabel(server_frame, text="Server IP:").pack(anchor=tk.W, padx=5)
+        self.fc_server_ip = ctk.CTkEntry(server_frame)
         self.fc_server_ip.insert(0, self.fc_data.get("server_ip", "127.0.0.1"))
-        self.fc_server_ip.pack(fill=tk.X, pady=2)
+        self.fc_server_ip.pack(fill=tk.X, pady=2, padx=5)
         
-        self.fc_connect_btn = ttk.Button(server_frame, text="Connect", command=self.fc_toggle_connection)
-        self.fc_connect_btn.pack(fill=tk.X, pady=2)
+        self.fc_connect_btn = ctk.CTkButton(server_frame, text="Connect", command=self.fc_toggle_connection)
+        self.fc_connect_btn.pack(fill=tk.X, pady=2, padx=5)
         
-        self.fc_status_lbl = ttk.Label(server_frame, text="Status: Offline", foreground="gray")
-        self.fc_status_lbl.pack(anchor=tk.W)
+        self.fc_status_lbl = ctk.CTkLabel(server_frame, text="Status: Offline", text_color="gray")
+        self.fc_status_lbl.pack(anchor=tk.W, padx=5)
 
         # 2. Profile
-        profile_frame = ttk.LabelFrame(left_panel, text="My Profile", padding="5")
-        profile_frame.pack(fill=tk.X, pady=(0, 10))
+        profile_frame = ctk.CTkFrame(left_panel)
+        profile_frame.pack(fill=tk.X, pady=(0, 10), padx=5)
+        ctk.CTkLabel(profile_frame, text="My Profile", font=("Segoe UI", 12, "bold")).pack(anchor=tk.W, padx=5, pady=5)
         
-        ttk.Label(profile_frame, text="Username:").pack(anchor=tk.W)
-        self.fc_username_entry = ttk.Entry(profile_frame)
+        ctk.CTkLabel(profile_frame, text="Username:").pack(anchor=tk.W, padx=5)
+        self.fc_username_entry = ctk.CTkEntry(profile_frame)
         self.fc_username_entry.insert(0, self.fc_data.get("username", ""))
-        self.fc_username_entry.pack(fill=tk.X, pady=2)
+        self.fc_username_entry.pack(fill=tk.X, pady=2, padx=5)
         self.fc_username_entry.bind("<FocusOut>", self.fc_save_settings)
         
         # 3. Friends List
-        friends_frame = ttk.LabelFrame(left_panel, text="Friends", padding="5")
-        friends_frame.pack(fill=tk.BOTH, expand=True)
+        friends_frame = ctk.CTkFrame(left_panel)
+        friends_frame.pack(fill=tk.BOTH, expand=True, padx=5)
+        ctk.CTkLabel(friends_frame, text="Friends", font=("Segoe UI", 12, "bold")).pack(anchor=tk.W, padx=5, pady=5)
         
         # Add Friend Area
-        add_frame = ttk.Frame(friends_frame)
-        add_frame.pack(fill=tk.X, pady=(0, 5))
-        self.fc_add_entry = ttk.Entry(add_frame)
+        add_frame = ctk.CTkFrame(friends_frame, fg_color="transparent")
+        add_frame.pack(fill=tk.X, pady=(0, 5), padx=5)
+        self.fc_add_entry = ctk.CTkEntry(add_frame)
         self.fc_add_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
-        ttk.Button(add_frame, text="+", width=3, command=self.fc_add_friend).pack(side=tk.RIGHT)
+        ctk.CTkButton(add_frame, text="+", width=30, command=self.fc_add_friend).pack(side=tk.RIGHT)
         
-        self.fc_friends_list = tk.Listbox(friends_frame, bg="#1e293b", fg="#f8fafc", borderwidth=0, highlightthickness=0)
-        self.fc_friends_list.pack(fill=tk.BOTH, expand=True)
-        self.fc_friends_list.bind("<<ListboxSelect>>", self.fc_on_friend_select)
+        # Friends list using scrollable frame
+        self.fc_friends_scroll = ctk.CTkScrollableFrame(friends_frame)
+        self.fc_friends_scroll.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        
+        # Store friend buttons
+        self.fc_friend_buttons = {}
         
         # === Right Panel Content ===
         
         # Header
-        self.fc_chat_header = ttk.Label(right_panel, text="Select a friend to chat", font=("Segoe UI", 12, "bold"))
-        self.fc_chat_header.pack(fill=tk.X, pady=(0, 10))
+        self.fc_chat_header = ctk.CTkLabel(right_panel, text="Select a friend to chat", font=("Segoe UI", 14, "bold"))
+        self.fc_chat_header.pack(fill=tk.X, pady=(5, 10), padx=10)
         
         # Chat Log
-        self.fc_chat_log = scrolledtext.ScrolledText(right_panel, state="disabled", bg="#0f172a", fg="#f8fafc", font=("Segoe UI", 10))
-        self.fc_chat_log.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+        self.fc_chat_log = ctk.CTkTextbox(right_panel, state="disabled")
+        self.fc_chat_log.pack(fill=tk.BOTH, expand=True, pady=(0, 10), padx=10)
         
         # Input Area
-        input_frame = ttk.Frame(right_panel)
-        input_frame.pack(fill=tk.X)
+        input_frame = ctk.CTkFrame(right_panel, fg_color="transparent")
+        input_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
         
-        self.fc_msg_entry = ttk.Entry(input_frame)
+        self.fc_msg_entry = ctk.CTkEntry(input_frame)
         self.fc_msg_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
         self.fc_msg_entry.bind("<Return>", lambda e: self.fc_send_message())
         
-        self.fc_send_btn = ttk.Button(input_frame, text="Send", command=self.fc_send_message, state="disabled")
+        self.fc_send_btn = ctk.CTkButton(input_frame, text="Send", command=self.fc_send_message, state="disabled", width=80)
         self.fc_send_btn.pack(side=tk.RIGHT)
         
         self.fc_refresh_friends_list()
@@ -3216,29 +3183,46 @@ class EncryptionApp:
             self.fc_add_entry.delete(0, tk.END)
 
     def fc_refresh_friends_list(self):
-        self.fc_friends_list.delete(0, tk.END)
+        # Clear existing buttons
+        for widget in self.fc_friends_scroll.winfo_children():
+            widget.destroy()
+        self.fc_friend_buttons.clear()
+        
+        # Add friend buttons
         for friend in self.fc_data["friends"]:
-            self.fc_friends_list.insert(tk.END, friend)
+            btn = ctk.CTkButton(
+                self.fc_friends_scroll,
+                text=friend,
+                command=lambda f=friend: self.fc_select_friend(f),
+                fg_color="transparent",
+                hover_color=("gray70", "gray30"),
+                anchor="w"
+            )
+            btn.pack(fill=tk.X, pady=2)
+            self.fc_friend_buttons[friend] = btn
 
-    def fc_on_friend_select(self, event):
-        selection = self.fc_friends_list.curselection()
-        if selection:
-            friend = self.fc_friends_list.get(selection[0])
-            self.fc_current_chat = friend
-            self.fc_chat_header.config(text=f"Chat with {friend}")
-            self.fc_send_btn.config(state="normal")
-            self.fc_refresh_chat()
+    def fc_select_friend(self, friend):
+        # Highlight selected friend
+        for f, btn in self.fc_friend_buttons.items():
+            if f == friend:
+                btn.configure(fg_color=("gray75", "gray25"))
+            else:
+                btn.configure(fg_color="transparent")
+        
+        self.fc_current_chat = friend
+        self.fc_chat_header.configure(text=f"Chat with {friend}")
+        self.fc_send_btn.configure(state="normal")
+        self.fc_refresh_chat()
 
     def fc_refresh_chat(self):
-        self.fc_chat_log.config(state="normal")
+        self.fc_chat_log.configure(state="normal")
         self.fc_chat_log.delete("1.0", tk.END)
         
         if self.fc_current_chat in self.fc_chat_histories:
             for msg in self.fc_chat_histories[self.fc_current_chat]:
                 self.fc_chat_log.insert(tk.END, msg + "\n")
         
-        self.fc_chat_log.see(tk.END)
-        self.fc_chat_log.config(state="disabled")
+        self.fc_chat_log.configure(state="disabled")
 
     def fc_add_to_history(self, chat_id, message):
         if chat_id not in self.fc_chat_histories:
@@ -3282,7 +3266,7 @@ class EncryptionApp:
 
 
 if __name__ == "__main__":
-    root = tk.Tk()
+    root = ctk.CTk()
     app = EncryptionApp(root)
     root.after(1000, app.auto_start_services)
     root.mainloop()
