@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whlates - Secure Your World</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="index.html" class="logo">Whlates</a>
+                <div class="nav-links">
+                    <a href="index.html" class="active">Home</a>
+                    <a href="features.html">Features</a>
+                    <a href="download.html">Download</a>
+                    <a href="points.html">Points</a>
+                </div>
+                <a href="login.html" class="cta-button" id="navAuthButton">Sign In</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <div class="hero-badges">
+                        <span class="badge">v2.7 Alpha - 2025 Edition</span>
+                        <span class="badge">New Central Server</span>
+                    </div>
+                    <h1>Secure Communication Made Simple.</h1>
+                    <p>The all-in-one encryption suite. Encrypt files, chat securely with friends, crack hashes, and
+                        manage your keys with ease.</p>
+                    <div class="hero-buttons">
+                        <a href="download.html" class="cta-button"><i class="fas fa-download"></i> Download Now</a>
+                        <a href="features.html" class="secondary-button">Explore Features</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="features">
+            <div class="container">
+                <h2>Why Whlates?</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-lock"></i></div>
+                        <h3>Advanced Encryption</h3>
+                        <p>Secure your files and text with AES-256, Vigenère, and Caesar ciphers. Randomize parameters
+                            for maximum security.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-key"></i></div>
+                        <h3>Key Management</h3>
+                        <p>Save, tag, and organize your encryption keys. Never lose access to your encrypted data again.
+                        </p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-server"></i></div>
+                        <h3>Centralized Chat</h3>
+                        <p>Stay connected with our new Central Server. Send offline messages, add friends by username,
+                            and never miss a beat.
+                        </p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-hashtag"></i></div>
+                        <h3>Hashing & Cracking</h3>
+                        <p>Verify file integrity with MD5/SHA hashes, or test password strength with the built-in
+                            cracker.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Whlates. Built for security.</p>
+        </div>
+    </footer>
+
+    <script src="auth.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Update nav button based on auth status
+        if (checkAuth()) {
+            const user = getCurrentUser();
+            document.getElementById('navAuthButton').href = 'account.html';
+            document.getElementById('navAuthButton').innerHTML = '<i class="fas fa-user"></i> Account';
+        }
+    </script>
+</body>
+
+</html>

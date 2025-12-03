@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - Whlates</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .account-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 120px 20px 40px;
+        }
+
+        .account-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .account-card {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .account-card h2 {
+            color: #3b82f6;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .info-item {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .info-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .points-display {
+            font-size: 2.5rem;
+            color: #3b82f6;
+            font-weight: bold;
+        }
+
+        .pro-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #1e293b;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.875rem;
+            margin-left: 1rem;
+        }
+
+        .account-input {
+            width: 100%;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 6px;
+            color: white;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .account-button {
+            padding: 0.75rem 1.5rem;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .account-button:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        .logout-button {
+            background: #ef4444;
+        }
+
+        .logout-button:hover {
+            background: #dc2626;
+        }
+
+        .success-message {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="index.html" class="logo">Whlates</a>
+                <div class="nav-links">
+                    <a href="index.html">Home</a>
+                    <a href="features.html">Features</a>
+                    <a href="download.html">Download</a>
+                    <a href="account.html" class="active">Account</a>
+                </div>
+                <a href="#" onclick="logout()" class="cta-button">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="account-container">
+            <div class="account-header">
+                <h1><i class="fas fa-user-circle"></i> My Account</h1>
+                <p>Manage your profile and points</p>
+            </div>
+
+            <!-- Account Info -->
+            <div class="account-card">
+                <h2><i class="fas fa-info-circle"></i> Account Information</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Username</div>
+                        <div class="info-value" id="displayUsername">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Email</div>
+                        <div class="info-value" id="displayEmail">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Member Since</div>
+                        <div class="info-value" id="displayCreated">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Points Info -->
+            <div class="account-card">
+                <h2>
+                    <i class="fas fa-coins"></i> My Points
+                    <span id="proBadge" style="display: none;" class="pro-badge">
+                        <i class="fas fa-crown"></i> PRO
+                    </span>
+                </h2>
+                <div id="successMessage" class="success-message"></div>
+
+                <div style="text-align: center; margin: 2rem 0;">
+                    <div class="info-label">Current Balance</div>
+                    <div class="points-display" id="pointsBalance">0</div>
+                    <p id="pointsStatus" style="color: var(--text-secondary); margin-top: 1rem;">-</p>
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <label class="info-label">Update Your Points</label>
+                    <input type="number" id="pointsInput" class="account-input" placeholder="Enter new points balance"
+                        min="0">
+                    <button onclick="updatePoints()" class="account-button">
+                        <i class="fas fa-save"></i> Update Points
+                    </button>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="account-card">
+                <h2><i class="fas fa-cog"></i> Account Actions</h2>
+                <button onclick="window.location.href='download.html'" class="account-button">
+                    <i class="fas fa-download"></i> Download Whlates
+                </button>
+                <button onclick="window.location.href='points.html'" class="account-button">
+                    <i class="fas fa-search"></i> Check Points System
+                </button>
+                <button onclick="logout()" class="account-button logout-button">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Whlates. Built for security.</p>
+        </div>
+    </footer>
+
+    <script src="auth.js"></script>
+    <script>
+        // Check if logged in
+        if (!checkAuth()) {
+            window.location.href = 'login.html';
+        }
+
+        // Load user data
+        async function loadUserData() {
+            const user = getCurrentUser();
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Display user info
+            document.getElementById('displayUsername').textContent = user.username;
+            document.getElementById('displayEmail').textContent = user.email;
+
+            const createdDate = new Date(user.createdAt);
+            document.getElementById('displayCreated').textContent = createdDate.toLocaleDateString();
+
+            // Display points
+            const points = user.points || 0;
+            document.getElementById('pointsBalance').textContent = points.toLocaleString();
+            document.getElementById('pointsInput').value = points;
+
+            if (points >= 1000) {
+                document.getElementById('proBadge').style.display = 'inline-block';
+                document.getElementById('pointsStatus').innerHTML =
+                    '<strong style="color: #10b981;">✅ You have access to v2.7 Pro!</strong>';
+            } else {
+                const needed = 1000 - points;
+                document.getElementById('pointsStatus').textContent =
+                    `You need ${needed.toLocaleString()} more points for v2.7 Pro`;
+            }
+        }
+
+        async function updatePoints() {
+            const newPoints = document.getElementById('pointsInput').value.trim();
+            const successDiv = document.getElementById('successMessage');
+
+            if (!newPoints || newPoints < 0) {
+                alert('Please enter a valid points value');
+                return;
+            }
+
+            const result = await updateUserPoints(parseInt(newPoints));
+
+            if (result.success) {
+                successDiv.textContent = 'Points updated successfully!';
+                successDiv.style.display = 'block';
+
+                setTimeout(() => {
+                    successDiv.style.display = 'none';
+                    loadUserData();
+                }, 2000);
+            }
+        }
+
+        // Load data on page load
+        window.addEventListener('DOMContentLoaded', loadUserData);
+    </script>
+</body>
+
+</html>
